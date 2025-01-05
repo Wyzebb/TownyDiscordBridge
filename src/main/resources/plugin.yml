@@ -1,44 +1,45 @@
+name: TownyDiscordBridge
+version: 1.0.0
 main: me.wyzebb.TownyDiscordBridge.TownyDiscordBridge
-name: TownyDiscordChat
-version: 1.0.8
-api-version: 1.20
-authors: 
-- thejames10
-- Hugo5000
+api-version: '1.21'
+author: Wyzebb
+description: A simple plugin to bridge between Towny and DiscordSRV and provide lots of useful features
 
-depend: [DiscordSRV, Towny]
+depend: [Towny, DiscordSRV]
 
 commands:
-  TownyDiscordChat:
-    description: Link Discord and Towny Data
-    aliases: [tdc]
-    usage: /TownyDiscordChat
+  townydiscordbridge:
+    description: Towny and Discord link plugin main command
+    aliases: tdb
+    usage: /townydiscordbridge <subcommand>
 
-  permissions:
-    TownyDiscordChat.Admin:
-      description: Gives access to all TownyDiscordChat commands
-      children:
-        TownyDiscordChat.Check.Role.AllLinked: true
-        TownyDiscordChat.Check.Role: true
-        TownyDiscordChat.Check.Role.CreateAllTownsAndNations: true
-        TownyDiscordChat.Check.TextChannel.AllTownsAndNations: true
-        TownyDiscordChat.Check.VoiceChannel.AllTownsAndNations: true
-    TownyDiscordChat.Player:
-      description: Gives regular player general commands
-      children:
-        TownyDiscordChat.Check.Role: true
-    TownyDiscordChat.Check.Role.AllLinked:
-      description: Allows you to force run a check for discord roles of all players in a town or nation then adds or removes
-      default: false
-    TownyDiscordChat.Check.Role:
-      description: Allows you to force run a check for discord roles of a single player in a town or nation then adds or removes
-      default: false
-    TownyDiscordChat.Check.Role.CreateAllTownsAndNations:
-      description: Allows you to force run a check for discord roles of all players in a town or nation and creates them if needed
-      default: false
-    TownyDiscordChat.Check.TextChannel.AllTownsAndNations:
-      description: Allows you to force run a check for discord text channels of all players in a town or nation and creates them if needed
-      default: false
-    TownyDiscordChat.Check.VoiceChannel.AllTownsAndNations:
-      description: Allows you to force run a check for discord voice channels of all players in a town or nation and creates them if needed
-      default: false
+# TODO: Finish command and permission definitions
+
+permissions:
+  townydiscordbridge.admin:
+    description: Gives access to all TownyDiscordBridge commands
+    children:
+      TownyDiscordBridge.Check.Role.AllLinked: true
+      TownyDiscordBridge.Check.Role: true
+      TownyDiscordBridge.Check.Role.CreateAllTownsAndNations: true
+      TownyDiscordBridge.Check.TextChannel.AllTownsAndNations: true
+      TownyDiscordBridge.Check.VoiceChannel.AllTownsAndNations: true
+  townydiscordbridge.Player:
+    description: Gives regular player general commands
+    children:
+      TownyDiscordBridge.Check.Role: true
+  townydiscordbridge.Check.Role.AllLinked:
+    description: Allows you to force run a check for discord roles of all players in a town or nation then adds or removes
+    default: false
+  townydiscordbridge.Check.Role:
+    description: Allows you to force run a check for discord roles of a single player in a town or nation then adds or removes
+    default: false
+  townydiscordbridge.Check.Role.CreateAllTownsAndNations:
+    description: Allows you to force run a check for discord roles of all players in a town or nation and creates them if needed
+    default: false
+  townydiscordbridge.Check.TextChannel.AllTownsAndNations:
+    description: Allows you to force run a check for discord text channels of all players in a town or nation and creates them if needed
+    default: false
+  townydiscordbridge.Check.VoiceChannel.AllTownsAndNations:
+    description: Allows you to force run a check for discord voice channels of all players in a town or nation and creates them if needed
+    default: false
