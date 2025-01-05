@@ -19,14 +19,8 @@ public class DiscordSRVListener {
         }
 
         String discordId = event.getUser().getId();
-        UUID UUID = offlinePlayer.getUniqueId();
+        UUID uuid = offlinePlayer.getUniqueId();
 
-        TDCManager.discordUserRoleCheck(discordId, UUID);
+        TDCManager.discordUserRoleCheck(discordId, uuid);
     }
 }
-
-
-/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordBridge/TownyDiscordBridge-Build-1.0.7.jar!/com/TownyDiscordBridge/TownyDiscordBridge/Listeners/TDCDiscordSRVListener.class
- * Java compiler version: 11 (55.0)
- * JD-Core Version:       1.1.3
- */
