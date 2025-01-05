@@ -72,7 +72,7 @@ public class Metrics {
     }
 
     private void appendPlatformData(JsonObjectBuilder builder) {
-        builder.appendField("playerAmount", getPlayerAmount());
+        builder.appendField("playerAmount", getOfflinePlayerAmount());
         builder.appendField("onlineMode", Bukkit.getOnlineMode() ? 1 : 0);
         builder.appendField("bukkitVersion", Bukkit.getVersion());
         builder.appendField("bukkitName", Bukkit.getName());
@@ -89,7 +89,7 @@ public class Metrics {
     }
 
 
-    private int getPlayerAmount() {
+    private int getOfflinePlayerAmount() {
         try {
             Method onlinePlayersMethod = Class.forName("org.bukkit.Server").getMethod("getOnlinePlayers", new Class[0]);
             return onlinePlayersMethod.getReturnType().equals(Collection.class) ? (
