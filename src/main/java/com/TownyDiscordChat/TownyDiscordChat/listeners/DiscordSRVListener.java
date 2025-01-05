@@ -1,4 +1,4 @@
-package com.TownyDiscordChat.TownyDiscordChat.Listeners;
+package com.TownyDiscordChat.TownyDiscordChat.listeners;
 
 import com.TownyDiscordChat.TownyDiscordChat.TDCManager;
 import github.scarsz.discordsrv.api.Subscribe;
@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 
 
-public class TDCDiscordSRVListener {
+public class DiscordSRVListener {
     @Subscribe
     public void accountLinked(AccountLinkedEvent event) {
         OfflinePlayer offlinePlayer = event.getPlayer();
