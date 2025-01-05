@@ -20,15 +20,12 @@ import github.scarsz.discordsrv.dependencies.jda.api.requests.restaction.RoleAct
 import github.scarsz.discordsrv.util.DiscordUtil;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -457,51 +454,13 @@ public class TDCManager {
         removePlayerRole(offlinePlayer, town);
     }
 
-    public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Town town) {
-        System.out.println("15");
-        Player player = Bukkit.getPlayer(uUID);
-        removePlayerRole(player, town);
-    }
-
-
-    public static final void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        String linkedId = getLinkedId(offlinePlayer);
-        System.out.println("16");
-
-        if (linkedId == null) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
-
-            return;
-        }
-
-        Member member = getMember(linkedId);
-
-        if (member == null) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-
-            return;
-        }
-
-        Role townRole = getRole(town);
-
-
-        if (townRole != null && member.getRoles().contains(townRole)) {
-
-
-            DiscordUtil.removeRolesFromMember(member, new Role[]{townRole});
-
-
-            DiscordUtil.privateMessage(member.getUser(), "You have been removed from the discord " + String.valueOf(town) + " channels!");
-
-
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the discord " + String.valueOf(town) + " channels!");
-        }
-    }
-
-    public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Nation nation) {
+    public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Nation nation, @NotNull Town town) {
         System.out.println("17");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
         removePlayerRole(offlinePlayer, nation);
+        removePlayerRole(offlinePlayer, town);
+        System.out.println("HOPEFULLY REMOVED " + uUID + " from " + nation.getName());
+        System.out.println("HOPEFULLY REMOVED " + uUID + " from " + town.getName());
     }
 
 
@@ -539,6 +498,40 @@ public class TDCManager {
         }
     }
 
+    public static final void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
+        System.out.println("18");
+        String linkedId = getLinkedId(offlinePlayer);
+
+        if (linkedId == null) {
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
+
+            return;
+        }
+
+        Member member = getMember(linkedId);
+
+        if (member == null) {
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
+
+            return;
+        }
+
+        Role townRole = getRole(town);
+
+
+        if (townRole != null && member.getRoles().contains(townRole)) {
+
+
+            DiscordUtil.removeRolesFromMember(member, new Role[]{townRole});
+
+
+            DiscordUtil.privateMessage(member.getUser(), "You have been removed from the discord " + String.valueOf(townRole) + " channels!");
+
+
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the discord " + String.valueOf(townRole) + " channels!");
+        }
+    }
+
 
     public static final void givePlayerNationRole(@NotNull OfflinePlayer offlinePlayer) {
         System.out.println("19");
@@ -560,12 +553,11 @@ public class TDCManager {
 
     public static final void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
         System.out.println("21");
+
         String linkedId = getLinkedId(offlinePlayer);
 
-
         if (linkedId == null) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
-
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do '/discord link' to get started!");
             return;
         }
 
@@ -573,20 +565,25 @@ public class TDCManager {
 
         if (member == null) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-
             return;
         }
 
-        Role townRole = getRole(nation);
+        Role nationRole = getRole(nation);
 
-        if (townRole != null) {
-
-            giveRoleToMember(offlinePlayer, member, townRole);
+        if (nationRole != null) {
+            if (!member.getRoles().contains(nationRole)) {
+                System.out.println("[DEBUG] Member roles before: " + member.getRoles());
+                giveRoleToMember(offlinePlayer, member, nationRole);
+                System.out.println("[DEBUG] Member roles after: " + member.getRoles());
+            } else {
+                System.out.println("Role already assigned: " + nationRole.getName());
+            }
         } else {
-
             createRole(offlinePlayer, member, nation);
         }
     }
+
+
 
 
     public static final void givePlayerTownRole(@NotNull OfflinePlayer offlinePlayer) {
@@ -600,21 +597,35 @@ public class TDCManager {
         givePlayerRole(offlinePlayer, town);
     }
 
+    private static final Set<UUID> processingRoles = ConcurrentHashMap.newKeySet();
+
     public static final void givePlayerRole(@NotNull UUID uUID, @NotNull Town town) {
-        System.out.println("23");
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
-        givePlayerRole(offlinePlayer, town);
+        if (!processingRoles.add(uUID)) return; // Prevent re-entrant processing.
+        try {
+            System.out.println("23");
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
+            givePlayerRole(offlinePlayer, town);
+            if (town.hasNation()) {
+                Nation nation = town.getNation();
+                Preconditions.checkNotNull(nation);
+                TDCManager.givePlayerRole(uUID, nation);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            processingRoles.remove(uUID);
+        }
     }
+
 
 
     public static final void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
         System.out.println("24");
-        String linkedId = getLinkedId(offlinePlayer);
 
+        String linkedId = getLinkedId(offlinePlayer);
 
         if (linkedId == null) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do '/discord link' to get started!");
-
             return;
         }
 
@@ -622,80 +633,119 @@ public class TDCManager {
 
         if (member == null) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-
             return;
         }
 
         Role townRole = getRole(town);
 
         if (townRole != null) {
-
-            giveRoleToMember(offlinePlayer, member, townRole);
+            if (!member.getRoles().contains(townRole)) {
+                System.out.println("[DEBUG] Member roles before: " + member.getRoles());
+                giveRoleToMember(offlinePlayer, member, townRole);
+                System.out.println("[DEBUG] Member roles after: " + member.getRoles());
+            } else {
+                System.out.println("Role already assigned: " + townRole.getName());
+            }
         } else {
-
             createRole(offlinePlayer, member, town);
         }
     }
 
 
-    private static void giveRoleToMember(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Role townRole) {
-        System.out.println("25");
-        Main.plugin.getLogger().info("--------------------------------------------------");
-        Main.plugin.getLogger().info(member.getId());
-        Main.plugin.getLogger().info("--------------------------------------------------");
 
 
-        List<Role> usernameDiscordRoles = member.getRoles();
-        Main.plugin.getLogger().info("--------------------------------------------------");
-        for (Role role : usernameDiscordRoles) {
-            Main.plugin.getLogger().info(role.getName() + " | " + role.getName() + " | " + role.getId());
-        }
-        Main.plugin.getLogger().info("--------------------------------------------------");
+    private static void giveRoleToMember(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Role role) {
+        System.out.println("[DEBUG] Attempting to assign role: " + role.getName() + " to member: " + member.getEffectiveName());
+        System.out.println("[DEBUG] Member roles before: " + member.getRoles());
 
-        if (member.getRoles().contains(townRole)) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You are already a part of the " + townRole.getName() + " role!");
-        } else {
+        Guild guild = member.getGuild();
 
-            DiscordUtil.addRolesToMember(member, new Role[]{townRole});
-
-
-            DiscordUtil.privateMessage(member.getUser(), "Your account has been linked to " + townRole
-                    .getName().substring(townRole.getName().indexOf('-') + 1) + "!");
-
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, "Your account has been linked to " + townRole
-                    .getName().substring(townRole.getName().indexOf('-') + 1) + "!");
-        }
+        guild.addRoleToMember(member, role).queue(
+                success -> {
+                    System.out.println("[DEBUG] Successfully assigned role: " + role.getName());
+                    System.out.println("[DEBUG] Member roles after: " + member.getRoles());
+                    DiscordUtil.privateMessage(
+                            member.getUser(),
+                            "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
+                    );
+                    TDCMessages.sendMessageToPlayerGame(
+                            offlinePlayer,
+                            "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
+                    );
+                },
+                failure -> {
+                    System.err.println("[ERROR] Failed to assign role: " + role.getName() + " to member: " + member.getEffectiveName());
+                    failure.printStackTrace();
+                }
+        );
     }
+
+
 
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Town town) {
         System.out.println("26");
         Guild guild = member.getGuild();
+
         if (Main.plugin.config.getBoolean("town.CreateRoleIfNoneExists")) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, String.valueOf(town) + " Doesn't have a Role, automatically creating one for you...!");
-            guild.createRole().setName("town-" + town.getName())
-                    .setColor(Color.decode(Main.plugin.config.getString("town.RoleCreateColorCode"))).queue(role -> {
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, town.getName() + " doesn't have a Role, automatically creating one for you...!");
+
+            guild.createRole()
+                    .setName("town-" + town.getName())
+                    .setColor(Color.decode(Main.plugin.config.getString("town.RoleCreateColorCode")))
+                    .queue(role -> {
+                        System.out.println("[DEBUG] Successfully created role: " + role.getName());
+                        System.out.println("[DEBUG] Member roles before assigning new role: " + member.getRoles());
+
                         DiscordUtil.addRolesToMember(member, new Role[]{role});
+
+                        System.out.println("[DEBUG] Member roles after assigning new role: " + member.getRoles());
                         createChannels(guild, town, role);
-                        TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleCreateSuccess() + " town-" + TDCMessages.getConfigMsgRoleCreateSuccess() + " [24]");
-                    }, failure -> TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleCreateFailure() + " town-" + TDCMessages.getConfigMsgRoleCreateFailure() + " [24]"));
+
+                        TDCMessages.sendMessageToDiscordLogChannel(
+                                TDCMessages.getConfigMsgRoleCreateSuccess() + " town-" + town.getName() + " [26]"
+                        );
+                    }, failure -> {
+                        System.err.println("[ERROR] Failed to create role for town: " + town.getName());
+                        TDCMessages.sendMessageToDiscordLogChannel(
+                                TDCMessages.getConfigMsgRoleCreateFailure() + " town-" + town.getName() + " [26]"
+                        );
+                    });
         }
     }
-
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Nation nation) {
         System.out.println("27");
         Guild guild = member.getGuild();
+
         if (Main.plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
-            TDCMessages.sendMessageToPlayerGame(offlinePlayer, String.valueOf(nation) + " Doesn't have a Role, automatically creating one for you...!");
-            guild.createRole().setName("nation-" + nation.getName())
-                    .setColor(Color.decode(Main.plugin.config.getString("nation.RoleCreateColorCode"))).queue(role -> {
+            TDCMessages.sendMessageToPlayerGame(offlinePlayer, nation.getName() + " doesn't have a Role, automatically creating one for you...!");
+
+            guild.createRole()
+                    .setName("nation-" + nation.getName())
+                    .setColor(Color.decode(Main.plugin.config.getString("nation.RoleCreateColorCode")))
+                    .queue(role -> {
+                        System.out.println("[DEBUG] Successfully created role: " + role.getName());
+                        System.out.println("[DEBUG] Member roles before assigning new role: " + member.getRoles());
+
                         giveRoleToMember(offlinePlayer, member, role);
+
+                        System.out.println("[DEBUG] Member roles after assigning new role: " + member.getRoles());
                         createChannels(guild, nation, role);
-                        TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleCreateSuccess() + " nation-" + TDCMessages.getConfigMsgRoleCreateSuccess() + " [25]");
-                    }, failure -> TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleCreateFailure() + " nation-" + TDCMessages.getConfigMsgRoleCreateFailure() + " [25]"));
+
+                        TDCMessages.sendMessageToDiscordLogChannel(
+                                TDCMessages.getConfigMsgRoleCreateSuccess() + " nation-" + nation.getName() + " [27]"
+                        );
+                    }, failure -> {
+                        System.err.println("[ERROR] Failed to create role for nation: " + nation.getName());
+                        TDCMessages.sendMessageToDiscordLogChannel(
+                                TDCMessages.getConfigMsgRoleCreateFailure() + " nation-" + nation.getName() + " [27]"
+                        );
+                    });
         }
     }
+
+
 
 
     private static void createChannels(Guild guild, Town town, Role role) {
@@ -832,7 +882,9 @@ public class TDCManager {
 
         try {
             role = DiscordUtil.getJda().getRolesByName(name, true).get(0);
+            System.out.println("Role given 839");
         } catch (Exception exception) {
+            System.out.println("AHA 841");
         }
 
 
