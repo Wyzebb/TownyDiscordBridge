@@ -1,4 +1,4 @@
-package com.TownyDiscordChat.TownyDiscordChat.Listeners;
+package com.TownyDiscordChat.TownyDiscordChat.listeners;
 
 import java.util.List;
 import java.util.Timer;
@@ -15,15 +15,11 @@ import com.palmergames.bukkit.towny.object.Resident;
 
 import com.palmergames.bukkit.towny.object.Town;
 import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.Guild;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import github.scarsz.discordsrv.DiscordSRV;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.Guild;
-import github.scarsz.discordsrv.util.DiscordUtil;
-
-// see javadocs for all towny listeners
-// https://javadoc.jitpack.io/com/github/TownyAdvanced/Towny/0.96.5.0/javadoc/
 
 public class TDCTownyListener implements Listener {
 
@@ -33,13 +29,10 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onNewDay(NewDayEvent event) {
-
-        System.out.println("NewDayEvent fired!");
+        Main.plugin.getLogger().warning("NewDayEvent fired!");
 
         TDCManager.discordRoleCheckAllTownsAllNations();
-
         TDCManager.discordTextChannelCheckAllTownsAllNations();
-
         TDCManager.discordVoiceChannelCheckAllTownsAllNations();
 
         Timer t = new java.util.Timer();
@@ -47,20 +40,17 @@ public class TDCTownyListener implements Listener {
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
-                        System.out.println("Running delayed task...");
+                        Main.plugin.getLogger().warning("Running delayed task...");
                         TDCManager.discordUserRoleCheckAllLinked();
-                        //t.cancel();
                     }
                 },
                 300000
-
         );
     }
 
     @EventHandler
     public void onPlayerJoinTown(TownAddResidentEvent event) {
-
-        Main.plugin.getLogger().info("TownAddResidentEvent fired!");
+        Main.plugin.getLogger().warning("TownAddResidentEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -83,8 +73,8 @@ public class TDCTownyListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerKickedTown (TownKickEvent event) {
-        Main.plugin.getLogger().info("TownKickEvent fired!");
+    public void onPlayerKickedTown(TownKickEvent event) {
+        Main.plugin.getLogger().warning("TownKickEvent fired!");
 
         UUID UUID = event.getKickedResident().getUUID();
         Town town = event.getTown();
@@ -92,7 +82,7 @@ public class TDCTownyListener implements Listener {
         Preconditions.checkNotNull(UUID);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town);
+        TDCManager.removePlayerRole(UUID, town.getNationOrNull(),  town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -102,13 +92,13 @@ public class TDCTownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation);
+            TDCManager.removePlayerRole(UUID, nation, town);
         }
     }
 
     @EventHandler
-    public void onPlayerLeave (TownLeaveEvent event) {
-        Main.plugin.getLogger().info("TownLeaveEvent fired!");
+    public void onPlayerLeave(TownLeaveEvent event) {
+        Main.plugin.getLogger().warning("TownLeaveEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -116,7 +106,7 @@ public class TDCTownyListener implements Listener {
         Preconditions.checkNotNull(UUID);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town);
+        TDCManager.removePlayerRole(UUID, town.getNationOrNull(), town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -126,14 +116,13 @@ public class TDCTownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation);
+            TDCManager.removePlayerRole(UUID, nation, town);
         }
     }
 
     @EventHandler
     public void onPlayerLeaveTown(TownRemoveResidentEvent event) {
-
-        Main.plugin.getLogger().info("TownRemoveResidentEvent fired!");
+        Main.plugin.getLogger().warning("TownRemoveResidentEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -141,7 +130,7 @@ public class TDCTownyListener implements Listener {
         Preconditions.checkNotNull(UUID);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town);
+        TDCManager.removePlayerRole(UUID, town.getNationOrNull(), town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -151,14 +140,13 @@ public class TDCTownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation);
+            TDCManager.removePlayerRole(UUID, nation, town);
         }
     }
 
     @EventHandler
     public void onTownJoinNation(NationAddTownEvent event) {
-
-        Main.plugin.getLogger().info("NationAddTownEvent fired!");
+        Main.plugin.getLogger().warning("NationAddTownEvent fired!");
 
         List<Resident> townResidents = event.getTown().getResidents();
         for (Resident townResident : townResidents) {
@@ -168,18 +156,16 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onTownLeaveNation(NationRemoveTownEvent event) {
-
-        System.out.println("NationRemoveTownEvent fired!");
+        Main.plugin.getLogger().warning("NationRemoveTownEvent fired!");
 
         for (Resident townResident : event.getTown().getResidents()) {
-            TDCManager.removePlayerRole(townResident.getUUID(), event.getNation());
+            TDCManager.removePlayerRole(townResident.getUUID(), event.getNation(), event.getTown());
         }
     }
 
     @EventHandler
     public void onRenameTown(RenameTownEvent event) {
-
-        System.out.println("RenameTownEvent fired!");
+        Main.plugin.getLogger().warning("RenameTownEvent fired!");
 
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getTown().getName();
@@ -191,8 +177,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onRenameNation(RenameNationEvent event) {
-
-        System.out.println("RenameNationEvent fired!");
+        Main.plugin.getLogger().warning("RenameNationEvent fired!");
 
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getNation().getName();
@@ -203,24 +188,22 @@ public class TDCTownyListener implements Listener {
     }
 
     @EventHandler
-    public void onDeleteTown(PreDeleteTownEvent event) {
-
-        System.out.println("DeleteTownEvent fired!");
+    public void onDeleteTown(PreDeleteTownEvent event) throws NotRegisteredException {
+        Main.plugin.getLogger().warning("DeleteTownEvent fired!");
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         Nation nation = event.getTown().getNationOrNull();
         if (nation != null)
             for (Resident townResident : event.getTown().getResidents())
-                TDCManager.removePlayerRole(townResident.getUUID(), nation);
+                TDCManager.removePlayerRole(townResident.getUUID(), nation, townResident.getTown());
 
         TDCManager.deleteRoleAndChannelsFromTown(event.getTownName());
     }
 
     @EventHandler
     public void onDeleteNation(DeleteNationEvent event) {
-
-        System.out.println("DeleteNationEvent fired!");
+        Main.plugin.getLogger().warning("DeleteNationEvent fired!");
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
