@@ -37,6 +37,7 @@ public class TDCManager {
     public static void discordUserRoleCheckAllLinked() {
         Map<String, UUID> linkedAccounts = DiscordSRV.getPlugin().getAccountLinkManager().getLinkedAccounts();
         linkedAccounts.forEach(TDCManager::discordUserRoleCheck);
+        System.out.println("1");
     }
 
     private static int boolToInt(boolean val) {
@@ -45,6 +46,7 @@ public class TDCManager {
 
 
     public static void discordUserRoleCheck(String discordId, UUID uUID) {
+        System.out.println("2");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
         if (!offlinePlayer.hasPlayedBefore()) {
             return;
@@ -80,6 +82,7 @@ public class TDCManager {
             try {
                 town = resident.getTown();
             } catch (NotRegisteredException notRegisteredException) {
+                System.out.println("Expected error occurred");
             }
         }
 
@@ -90,6 +93,7 @@ public class TDCManager {
             try {
                 nation = resident.getTown().getNation();
             } catch (NotRegisteredException notRegisteredException) {
+                System.out.println("Expected error occurred");
             }
         }
 
@@ -172,6 +176,8 @@ public class TDCManager {
 
 
     public static final void discordRoleCheckAllTownsAllNations() {
+        System.out.println("3");
+
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Role> allRoles = guild.getRoles();
@@ -221,6 +227,7 @@ public class TDCManager {
 
 
     public static final void discordTextChannelCheckAllTownsAllNations() {
+        System.out.println("4");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Town> allTowns = new ArrayList<>(TownyUniverse.getInstance().getTowns());
@@ -292,6 +299,7 @@ public class TDCManager {
 
 
     public static final void discordVoiceChannelCheckAllTownsAllNations() {
+        System.out.println("5");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Town> allTowns = new ArrayList<>(TownyUniverse.getInstance().getTowns());
@@ -352,15 +360,18 @@ public class TDCManager {
     }
 
     public static final void renameNation(String oldName, String newName) {
+        System.out.println("6");
         rename(oldName, newName, "nation-", getNationTextCategoryId(), getNationVoiceCategoryId());
     }
 
     public static final void renameTown(String oldName, String newName) {
+        System.out.println("7");
         rename(oldName, newName, "town-", getTownTextCategoryId(), getTownVoiceCategoryId());
     }
 
 
     public static final void rename(String oldName, String newName, String roleprefix, String townTextCategoryId, String townVoiceCategoryId) {
+        System.out.println("8");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         getRole(roleprefix + roleprefix).getManager().setName(roleprefix + roleprefix).queue(success -> TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleRenameSuccess() + " " + TDCMessages.getConfigMsgRoleRenameSuccess() + roleprefix + " to " + oldName + roleprefix + " [18]"), failure -> TDCMessages.sendMessageToDiscordLogChannel(TDCMessages.getConfigMsgRoleRenameFailure() + " " + TDCMessages.getConfigMsgRoleRenameFailure() + roleprefix + " to " + oldName + roleprefix + " [18]"));
@@ -384,27 +395,32 @@ public class TDCManager {
 
 
     public static final void deleteRoleAndChannels(Town town) {
+        System.out.println("9");
         deleteRoleAndChannelsFromTown(town.getName());
     }
 
 
     public static final void deleteRoleAndChannelsFromTown(String townName) {
+        System.out.println("10");
         deleteRoleAndChannels("town-" + townName, getRole("town-" + townName), getTownTextCategoryId(), getTownVoiceCategoryId());
     }
 
 
     public static final void deleteRoleAndChannels(Nation nation) {
+        System.out.println("11");
         deleteRoleAndChannelsFromNation(nation.getName());
     }
 
 
     public static final void deleteRoleAndChannelsFromNation(String nationName) {
+        System.out.println("12");
         deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationTextCategoryId(),
                 getNationVoiceCategoryId());
     }
 
 
     public static final void deleteRoleAndChannels(String name, @Nullable Role role, String textChannelParentId, String voiceChannelParentId) {
+        System.out.println("13");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         if (role != null) {
@@ -430,6 +446,7 @@ public class TDCManager {
 
 
     public static void removePlayerTownRole(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("14");
         Town town = getTown(offlinePlayer);
 
         if (town == null) {
@@ -441,7 +458,7 @@ public class TDCManager {
     }
 
     public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Town town) {
-        System.out.println("Using correct method");
+        System.out.println("15");
         Player player = Bukkit.getPlayer(uUID);
         removePlayerRole(player, town);
     }
@@ -449,6 +466,7 @@ public class TDCManager {
 
     public static final void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
         String linkedId = getLinkedId(offlinePlayer);
+        System.out.println("16");
 
         if (linkedId == null) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
@@ -481,12 +499,14 @@ public class TDCManager {
     }
 
     public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Nation nation) {
+        System.out.println("17");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
         removePlayerRole(offlinePlayer, nation);
     }
 
 
     public static final void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
+        System.out.println("18");
         String linkedId = getLinkedId(offlinePlayer);
 
         if (linkedId == null) {
@@ -521,6 +541,7 @@ public class TDCManager {
 
 
     public static final void givePlayerNationRole(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("19");
         Nation nation = getNation(offlinePlayer);
 
         if (nation == null) {
@@ -531,12 +552,14 @@ public class TDCManager {
     }
 
     public static final void givePlayerRole(@NotNull UUID uUID, @NotNull Nation nation) {
+        System.out.println("20");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
         givePlayerRole(offlinePlayer, nation);
     }
 
 
     public static final void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
+        System.out.println("21");
         String linkedId = getLinkedId(offlinePlayer);
 
 
@@ -567,6 +590,7 @@ public class TDCManager {
 
 
     public static final void givePlayerTownRole(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("22");
         Town town = getTown(offlinePlayer);
 
         if (town == null) {
@@ -577,12 +601,14 @@ public class TDCManager {
     }
 
     public static final void givePlayerRole(@NotNull UUID uUID, @NotNull Town town) {
+        System.out.println("23");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
         givePlayerRole(offlinePlayer, town);
     }
 
 
     public static final void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
+        System.out.println("24");
         String linkedId = getLinkedId(offlinePlayer);
 
 
@@ -613,6 +639,7 @@ public class TDCManager {
 
 
     private static void giveRoleToMember(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Role townRole) {
+        System.out.println("25");
         Main.plugin.getLogger().info("--------------------------------------------------");
         Main.plugin.getLogger().info(member.getId());
         Main.plugin.getLogger().info("--------------------------------------------------");
@@ -642,6 +669,7 @@ public class TDCManager {
 
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Town town) {
+        System.out.println("26");
         Guild guild = member.getGuild();
         if (Main.plugin.config.getBoolean("town.CreateRoleIfNoneExists")) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, String.valueOf(town) + " Doesn't have a Role, automatically creating one for you...!");
@@ -656,6 +684,7 @@ public class TDCManager {
 
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Nation nation) {
+        System.out.println("27");
         Guild guild = member.getGuild();
         if (Main.plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
             TDCMessages.sendMessageToPlayerGame(offlinePlayer, String.valueOf(nation) + " Doesn't have a Role, automatically creating one for you...!");
@@ -670,6 +699,7 @@ public class TDCManager {
 
 
     private static void createChannels(Guild guild, Town town, Role role) {
+        System.out.println("28");
         createChannels(guild, town.getName(), role, Main.plugin.config.getBoolean("town.CreateVoiceChannelForRole"), Main.plugin.config
                         .getBoolean("town.CreateTextChannelForRole"), getTownVoiceCategoryId(),
                 getTownTextCategoryId());
@@ -677,6 +707,7 @@ public class TDCManager {
 
 
     private static void createChannels(Guild guild, Nation nation, Role role) {
+        System.out.println("29");
         createChannels(guild, nation.getName(), role, Main.plugin.config.getBoolean("nation.CreateVoiceChannelForRole"), Main.plugin.config
                         .getBoolean("nation.CreateTextChannelForRole"), getNationVoiceCategoryId(),
                 getNationTextCategoryId());
@@ -684,6 +715,7 @@ public class TDCManager {
 
 
     private static void createChannels(@NotNull Guild guild, @NotNull String name, @NotNull Role role, boolean createVoiceChannel, boolean createTextChannel, @Nullable String voiceChannelCategoryId, @Nullable String textChannelCategoryId) {
+        System.out.println("30");
         long viewPermission = Permission.VIEW_CHANNEL.getRawValue();
         long messagePermission = Permission.MESSAGE_WRITE.getRawValue();
 
@@ -730,6 +762,7 @@ public class TDCManager {
 
     @Nullable
     public static String getLinkedId(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("31");
         return DiscordSRV.getPlugin().getAccountLinkManager().getDiscordId(offlinePlayer.getUniqueId());
     }
 
@@ -742,12 +775,14 @@ public class TDCManager {
 
     @Nullable
     private static Member getMember(@NotNull String id) {
+        System.out.println("32");
         return DiscordSRV.getPlugin().getMainGuild().getMemberById(id);
     }
 
 
     @Nullable
     private static Town getTown(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("33");
         try {
             Resident resident = TownyUniverse.getInstance().getResident(offlinePlayer.getUniqueId());
             if (resident == null) {
@@ -762,6 +797,7 @@ public class TDCManager {
 
     @Nullable
     private static Nation getNation(@NotNull OfflinePlayer offlinePlayer) {
+        System.out.println("34");
         Town town = getTown(offlinePlayer);
         if (town == null) {
             return null;
@@ -776,18 +812,21 @@ public class TDCManager {
 
     @Nullable
     private static Role getRole(@NotNull Town town) {
+        System.out.println("35");
         return getRole("town-" + town.getName());
     }
 
 
     @Nullable
     private static Role getRole(@NotNull Nation nation) {
+        System.out.println("36");
         return getRole("nation-" + nation.getName());
     }
 
 
     @Nullable
     private static Role getRole(@NotNull String name) {
+        System.out.println("37");
         Role role = null;
 
 
@@ -802,6 +841,7 @@ public class TDCManager {
 
     @Nullable
     private static String getTownVoiceCategoryId() {
+        System.out.println("38");
         return Main.plugin.config.getBoolean("town.UseCategoryForText") ?
                 Main.plugin.config.getString("town.TextCategoryId") :
                 "159361257244327936";
@@ -809,6 +849,7 @@ public class TDCManager {
 
     @Nullable
     private static String getTownTextCategoryId() {
+        System.out.println("39");
         return Main.plugin.config.getBoolean("town.UseCategoryForVoice") ?
                 Main.plugin.config.getString("town.VoiceCategoryId") :
                 "159361257244327936";
@@ -816,6 +857,7 @@ public class TDCManager {
 
     @Nullable
     private static String getNationVoiceCategoryId() {
+        System.out.println("40");
         return Main.plugin.config.getBoolean("nation.UseCategoryForText") ?
                 Main.plugin.config.getString("nation.TextCategoryId") :
                 "159361257244327936";
@@ -823,6 +865,7 @@ public class TDCManager {
 
     @Nullable
     private static String getNationTextCategoryId() {
+        System.out.println("41");
         return Main.plugin.config.getBoolean("nation.UseCategoryForVoice") ?
                 Main.plugin.config.getString("nation.VoiceCategoryId") :
                 "159361257244327936";
