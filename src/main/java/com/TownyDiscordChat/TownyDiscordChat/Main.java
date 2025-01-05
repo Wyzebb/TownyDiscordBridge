@@ -1,18 +1,16 @@
 package com.TownyDiscordChat.TownyDiscordChat;
 
-import com.TownyDiscordChat.TownyDiscordChat.Listeners.TDCDiscordSRVListener;
-import com.TownyDiscordChat.TownyDiscordChat.Listeners.TDCTownyListener;
+import com.TownyDiscordChat.TownyDiscordChat.listeners.DiscordSRVListener;
+import com.TownyDiscordChat.TownyDiscordChat.listeners.TDCTownyListener;
 import com.TownyDiscordChat.TownyDiscordChat.bukkit.Metrics;
 import github.scarsz.discordsrv.DiscordSRV;
 
 import java.util.Objects;
 
-import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Main
-        extends JavaPlugin {
+public class Main extends JavaPlugin {
     public static Main plugin;
     public FileConfiguration config = getConfig();
 
@@ -25,12 +23,12 @@ public class Main
         saveConfig();
         this.config = getConfig();
 
-        ((PluginCommand) Objects.<PluginCommand>requireNonNull(getCommand("TownyDiscordChat"))).setExecutor(new TDCCommand());
+        Objects.requireNonNull(getCommand("TownyDiscordChat")).setExecutor(new TDCCommand());
         getLogger().info("TownyDiscordChat has been Enabled!");
         plugin = this;
 
         new TDCTownyListener(plugin);
-        DiscordSRV.api.subscribe(new TDCDiscordSRVListener());
+        DiscordSRV.api.subscribe(new DiscordSRVListener());
     }
 
     public void onDisable() {
