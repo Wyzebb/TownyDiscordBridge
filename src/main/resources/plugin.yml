@@ -1,4 +1,4 @@
-main: me.wyzebb.TownyDiscordBridge.Main
+main: me.wyzebb.TownyDiscordBridge.TownyDiscordBridge
 name: TownyDiscordChat
 version: 1.0.8
 api-version: 1.20

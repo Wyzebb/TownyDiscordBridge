@@ -52,7 +52,7 @@ public class TDCMessages {
     public static void sendMessageToDiscordLogChannel(String message) {
         Preconditions.checkNotNull(message);
 
-        String discordLogTextChannelId = (String) Preconditions.checkNotNull(Main.plugin.config.getString("messages.DiscordLogTextChannelId"));
+        String discordLogTextChannelId = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.DiscordLogTextChannelId"));
 
         if (!"0".equals(discordLogTextChannelId)) {
             Guild guild = (Guild) Preconditions.checkNotNull(DiscordSRV.getPlugin().getMainGuild());
@@ -73,7 +73,7 @@ public class TDCMessages {
 
 
             DiscordUtil.sendMessage(textChannel, ChatColor.stripColor(logMsg));
-            Main.plugin.getLogger().info(ChatColor.stripColor(logMsg));
+            TownyDiscordBridge.plugin.getLogger().info(ChatColor.stripColor(logMsg));
         }
     }
 
@@ -81,7 +81,7 @@ public class TDCMessages {
     public static void sendMessageToDiscordLogChannel(UUID uUID, String message) {
         Preconditions.checkNotNull(message);
 
-        String discordLogTextChannelId = (String) Preconditions.checkNotNull(Main.plugin.config.getString("messages.DiscordLogTextChannelId"));
+        String discordLogTextChannelId = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.DiscordLogTextChannelId"));
 
         if (!"0".equals(discordLogTextChannelId)) {
             OfflinePlayer offlinePlayer = (OfflinePlayer) Preconditions.checkNotNull(Bukkit.getOfflinePlayer(uUID));
@@ -111,13 +111,13 @@ public class TDCMessages {
 
 
             DiscordUtil.sendMessage(textChannel, ChatColor.stripColor(logMsg));
-            Main.plugin.getLogger().info(ChatColor.stripColor(logMsg));
+            TownyDiscordBridge.plugin.getLogger().info(ChatColor.stripColor(logMsg));
         }
     }
 
 
     public static String getPluginPrefix() {
-        String prefix = (String) Preconditions.checkNotNull(Main.plugin.config.getString("messages.Prefix"));
+        String prefix = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.Prefix"));
         return ChatColor.translateAlternateColorCodes('&', prefix);
     }
 
@@ -238,20 +238,20 @@ public class TDCMessages {
 
 
     private static String getConfigMsg(String ymlPath) {
-        String plainText = (String) Preconditions.checkNotNull(Main.plugin.config.getString(ymlPath));
+        String plainText = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString(ymlPath));
 
         return ChatColor.translateAlternateColorCodes('&', plainText);
     }
 
 
     private static String getConfigTimeZone() {
-        String timeZone = Main.plugin.config.getString("messages.TimeZone");
+        String timeZone = TownyDiscordBridge.plugin.config.getString("messages.TimeZone");
         return (String) Preconditions.checkNotNull(timeZone);
     }
 
 
     private static String getConfigDateTimeFormat() {
-        String dateTimeFormat = Main.plugin.config.getString("messages.DateFormat");
+        String dateTimeFormat = TownyDiscordBridge.plugin.config.getString("messages.DateFormat");
         return (String) Preconditions.checkNotNull(dateTimeFormat);
     }
 }

@@ -9,8 +9,8 @@ import java.util.Objects;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Main extends JavaPlugin {
-    public static Main plugin;
+public class TownyDiscordBridge extends JavaPlugin {
+    public static TownyDiscordBridge plugin;
     public FileConfiguration config = getConfig();
 
     public void onEnable() {

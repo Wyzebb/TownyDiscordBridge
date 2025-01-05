@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.UUID;
 
-import me.wyzebb.TownyDiscordBridge.Main;
+import me.wyzebb.TownyDiscordBridge.TownyDiscordBridge;
 import me.wyzebb.TownyDiscordBridge.TDCManager;
 import com.palmergames.bukkit.towny.event.*;
 import com.palmergames.bukkit.towny.event.town.TownKickEvent;
@@ -23,13 +23,13 @@ import github.scarsz.discordsrv.DiscordSRV;
 
 public class TDCTownyListener implements Listener {
 
-    public TDCTownyListener(Main plugin) {
+    public TDCTownyListener(TownyDiscordBridge plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
     public void onNewDay(NewDayEvent event) {
-        Main.plugin.getLogger().warning("NewDayEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("NewDayEvent fired!");
 
         TDCManager.discordRoleCheckAllTownsAllNations();
         TDCManager.discordTextChannelCheckAllTownsAllNations();
@@ -40,7 +40,7 @@ public class TDCTownyListener implements Listener {
                 new java.util.TimerTask() {
                     @Override
                     public void run() {
-                        Main.plugin.getLogger().warning("Running delayed task...");
+                        TownyDiscordBridge.plugin.getLogger().warning("Running delayed task...");
                         TDCManager.discordUserRoleCheckAllLinked();
                     }
                 },
@@ -50,7 +50,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onPlayerJoinTown(TownAddResidentEvent event) {
-        Main.plugin.getLogger().warning("TownAddResidentEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("TownAddResidentEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -74,7 +74,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onPlayerKickedTown(TownKickEvent event) {
-        Main.plugin.getLogger().warning("TownKickEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("TownKickEvent fired!");
 
         UUID UUID = event.getKickedResident().getUUID();
         Town town = event.getTown();
@@ -98,7 +98,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onPlayerLeave(TownLeaveEvent event) {
-        Main.plugin.getLogger().warning("TownLeaveEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("TownLeaveEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -122,7 +122,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onPlayerLeaveTown(TownRemoveResidentEvent event) {
-        Main.plugin.getLogger().warning("TownRemoveResidentEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("TownRemoveResidentEvent fired!");
 
         UUID UUID = event.getResident().getUUID();
         Town town = event.getTown();
@@ -146,7 +146,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onTownJoinNation(NationAddTownEvent event) {
-        Main.plugin.getLogger().warning("NationAddTownEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("NationAddTownEvent fired!");
 
         List<Resident> townResidents = event.getTown().getResidents();
         for (Resident townResident : townResidents) {
@@ -156,7 +156,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onTownLeaveNation(NationRemoveTownEvent event) {
-        Main.plugin.getLogger().warning("NationRemoveTownEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("NationRemoveTownEvent fired!");
 
         for (Resident townResident : event.getTown().getResidents()) {
             TDCManager.removePlayerRole(townResident.getUUID(), event.getNation(), event.getTown());
@@ -165,7 +165,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onRenameTown(RenameTownEvent event) {
-        Main.plugin.getLogger().warning("RenameTownEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("RenameTownEvent fired!");
 
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getTown().getName();
@@ -177,7 +177,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onRenameNation(RenameNationEvent event) {
-        Main.plugin.getLogger().warning("RenameNationEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("RenameNationEvent fired!");
 
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getNation().getName();
@@ -189,7 +189,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onDeleteTown(PreDeleteTownEvent event) throws NotRegisteredException {
-        Main.plugin.getLogger().warning("DeleteTownEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("DeleteTownEvent fired!");
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
@@ -203,7 +203,7 @@ public class TDCTownyListener implements Listener {
 
     @EventHandler
     public void onDeleteNation(DeleteNationEvent event) {
-        Main.plugin.getLogger().warning("DeleteNationEvent fired!");
+        TownyDiscordBridge.plugin.getLogger().warning("DeleteNationEvent fired!");
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
