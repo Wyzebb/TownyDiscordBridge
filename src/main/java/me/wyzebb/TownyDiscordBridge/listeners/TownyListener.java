@@ -21,11 +21,7 @@ import org.bukkit.event.Listener;
 
 import github.scarsz.discordsrv.DiscordSRV;
 
-public class TDCTownyListener implements Listener {
-
-    public TDCTownyListener(TownyDiscordBridge plugin) {
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
-    }
+public class TownyListener implements Listener {
 
     @EventHandler
     public void onNewDay(NewDayEvent event) {

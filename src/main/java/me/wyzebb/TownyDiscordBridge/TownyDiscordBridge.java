@@ -1,7 +1,7 @@
 package me.wyzebb.TownyDiscordBridge;
 
 import me.wyzebb.TownyDiscordBridge.listeners.DiscordSRVListener;
-import me.wyzebb.TownyDiscordBridge.listeners.TDCTownyListener;
+import me.wyzebb.TownyDiscordBridge.listeners.TownyListener;
 import github.scarsz.discordsrv.DiscordSRV;
 
 import java.util.Objects;
@@ -14,22 +14,29 @@ public class TownyDiscordBridge extends JavaPlugin {
     public FileConfiguration config = getConfig();
 
     public void onEnable() {
+        getLogger().info("Plugin started!");
+        plugin = this;
 
+        // Config
         saveDefaultConfig();
         reloadConfig();
+        getConfig().options().copyDefaults(true);
         saveConfig();
         this.config = getConfig();
 
-        Objects.requireNonNull(getCommand("TownyDiscordBridge")).setExecutor(new TDCCommand());
-        getLogger().info("TownyDiscordBridge has been Enabled!");
-        plugin = this;
-
-        new TDCTownyListener(plugin);
+        // Register listeners
+        getServer().getPluginManager().registerEvents(new TownyListener(), this);
         DiscordSRV.api.subscribe(new DiscordSRVListener());
+
+        // Register command
+        Objects.requireNonNull(getCommand("TownyDiscordBridge")).setExecutor(new TDCCommand());
+
+//        new TownyListener(plugin); THIS WORKS FOR EVENT REGISTRATION
+//        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public void onDisable() {
-        getLogger().info("TownyDiscordBridge has been Disabled!");
+        getLogger().info("Plugin stopped!");
     }
 }
 
