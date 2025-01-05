@@ -26,7 +26,7 @@ public class DiscordSRVListener {
 }
 
 
-/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordChat/TownyDiscordChat-Build-1.0.7.jar!/com/TownyDiscordChat/TownyDiscordChat/Listeners/TDCDiscordSRVListener.class
+/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordBridge/TownyDiscordBridge-Build-1.0.7.jar!/com/TownyDiscordBridge/TownyDiscordBridge/Listeners/TDCDiscordSRVListener.class
  * Java compiler version: 11 (55.0)
  * JD-Core Version:       1.1.3
  */

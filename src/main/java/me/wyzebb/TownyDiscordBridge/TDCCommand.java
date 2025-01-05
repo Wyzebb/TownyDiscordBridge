@@ -27,7 +27,7 @@ public class TDCCommand
         if (args.length == 0) {
 
 
-            String msg = String.join("\n", new CharSequence[]{String.valueOf(ChatColor.DARK_GREEN) + "------------------------", String.valueOf(ChatColor.DARK_GREEN) + "Plugin: " + String.valueOf(ChatColor.DARK_GREEN) + "TownyDiscordChat", String.valueOf(ChatColor.DARK_GREEN) + "Version: " + String.valueOf(ChatColor.DARK_GREEN) + "1.0.8", String.valueOf(ChatColor.DARK_GREEN) + "Authors: " + String.valueOf(ChatColor.DARK_GREEN) + "thejames10,Hugo5000", String.valueOf(ChatColor.DARK_GREEN) + "Root Cmd: " + String.valueOf(ChatColor.DARK_GREEN) + "/TownyDiscordChat", String.valueOf(ChatColor.DARK_GREEN) + "Alias: " + String.valueOf(ChatColor.DARK_GREEN) + "/TDC", String.valueOf(ChatColor.DARK_GREEN) + "---------------------------------"});
+            String msg = String.join("\n", new CharSequence[]{String.valueOf(ChatColor.DARK_GREEN) + "------------------------", String.valueOf(ChatColor.DARK_GREEN) + "Plugin: " + String.valueOf(ChatColor.DARK_GREEN) + "TownyDiscordBridge", String.valueOf(ChatColor.DARK_GREEN) + "Version: " + String.valueOf(ChatColor.DARK_GREEN) + "1.0.8", String.valueOf(ChatColor.DARK_GREEN) + "Authors: " + String.valueOf(ChatColor.DARK_GREEN) + "thejames10,Hugo5000", String.valueOf(ChatColor.DARK_GREEN) + "Root Cmd: " + String.valueOf(ChatColor.DARK_GREEN) + "/TownyDiscordBridge", String.valueOf(ChatColor.DARK_GREEN) + "Alias: " + String.valueOf(ChatColor.DARK_GREEN) + "/TDC", String.valueOf(ChatColor.DARK_GREEN) + "---------------------------------"});
 
 
             TDCMessages.sendMessageToPlayerGame(player, msg);
@@ -43,7 +43,7 @@ public class TDCCommand
                 if (args.length >= 3 && "AllLinked".equalsIgnoreCase(args[2])) {
 
 
-                    if (sender.hasPermission("TownyDiscordChat.Admin") || sender.hasPermission("TownyDiscordChat.Check.Role.AllLinked")) {
+                    if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.Role.AllLinked")) {
                         TDCMessages.sendMessageToPlayerGame(player, TDCMessages.getConfigMsgCommandsPleasewait());
                         TDCManager.discordUserRoleCheckAllLinked();
                     } else {
@@ -54,7 +54,7 @@ public class TDCCommand
                 if (args.length >= 3 && "CreateAllTownsAndNations".equalsIgnoreCase(args[2])) {
 
 
-                    if (sender.hasPermission("TownyDiscordChat.Admin") || sender.hasPermission("TownyDiscordChat.Check.Role.CreateAllTownsAndNations")) {
+                    if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.Role.CreateAllTownsAndNations")) {
                         TDCMessages.sendMessageToPlayerGame(player, TDCMessages.getConfigMsgCommandsPleasewait());
                         TDCManager.discordRoleCheckAllTownsAllNations();
                     } else {
@@ -63,7 +63,7 @@ public class TDCCommand
                     return true;
                 }
 
-                if (sender.hasPermission("TownyDiscordChat.Admin") || sender.hasPermission("TownyDiscordChat.Player") || sender.hasPermission("TownyDiscordChat.Check.Role")) {
+                if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Player") || sender.hasPermission("TownyDiscordBridge.Check.Role")) {
                     UUID UUID = player.getUniqueId();
                     String discordId = DiscordSRV.getPlugin().getAccountLinkManager().getDiscordId(UUID);
 
@@ -82,7 +82,7 @@ public class TDCCommand
                 if (args.length >= 3 && "AllTownsAndNations".equalsIgnoreCase(args[2])) {
 
 
-                    if (sender.hasPermission("TownyDiscordChat.Admin") || sender.hasPermission("TownyDiscordChat.Check.TextChannel.AllTownsAndNations")) {
+                    if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.TextChannel.AllTownsAndNations")) {
                         TDCMessages.sendMessageToPlayerGame(player, TDCMessages.getConfigMsgCommandsPleasewait());
                         TDCManager.discordTextChannelCheckAllTownsAllNations();
                     } else {
@@ -97,7 +97,7 @@ public class TDCCommand
                 if (args.length >= 3 && "AllTownsAndNations".equalsIgnoreCase(args[2])) {
 
 
-                    if (sender.hasPermission("TownyDiscordChat.Admin") || sender.hasPermission("TownyDiscordChat.Check.VoiceChannel.AllTownsAndNations")) {
+                    if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.VoiceChannel.AllTownsAndNations")) {
                         TDCMessages.sendMessageToPlayerGame(player, TDCMessages.getConfigMsgCommandsPleasewait());
                         TDCManager.discordVoiceChannelCheckAllTownsAllNations();
                     } else {
@@ -114,7 +114,7 @@ public class TDCCommand
 }
 
 
-/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordChat/TownyDiscordChat-Build-1.0.7.jar!/com/TownyDiscordChat/TownyDiscordChat/TDCCommand.class
+/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordBridge/TownyDiscordBridge-Build-1.0.7.jar!/com/TownyDiscordBridge/TownyDiscordBridge/TDCCommand.class
  * Java compiler version: 11 (55.0)
  * JD-Core Version:       1.1.3
  */

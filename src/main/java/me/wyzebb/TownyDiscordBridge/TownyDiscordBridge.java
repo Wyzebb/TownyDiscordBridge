@@ -20,8 +20,8 @@ public class TownyDiscordBridge extends JavaPlugin {
         saveConfig();
         this.config = getConfig();
 
-        Objects.requireNonNull(getCommand("TownyDiscordChat")).setExecutor(new TDCCommand());
-        getLogger().info("TownyDiscordChat has been Enabled!");
+        Objects.requireNonNull(getCommand("TownyDiscordBridge")).setExecutor(new TDCCommand());
+        getLogger().info("TownyDiscordBridge has been Enabled!");
         plugin = this;
 
         new TDCTownyListener(plugin);
@@ -29,7 +29,7 @@ public class TownyDiscordBridge extends JavaPlugin {
     }
 
     public void onDisable() {
-        getLogger().info("TownyDiscordChat has been Disabled!");
+        getLogger().info("TownyDiscordBridge has been Disabled!");
     }
 }
 
