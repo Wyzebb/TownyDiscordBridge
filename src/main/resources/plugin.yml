@@ -1,7 +1,7 @@
 main: com.TownyDiscordChat.TownyDiscordChat.Main
 name: TownyDiscordChat
 version: 1.0.8
-api-version: 1.18
+api-version: 1.20
 authors: 
 - thejames10
 - Hugo5000
