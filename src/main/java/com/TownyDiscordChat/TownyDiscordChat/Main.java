@@ -2,7 +2,6 @@ package com.TownyDiscordChat.TownyDiscordChat;
 
 import com.TownyDiscordChat.TownyDiscordChat.listeners.DiscordSRVListener;
 import com.TownyDiscordChat.TownyDiscordChat.listeners.TDCTownyListener;
-import com.TownyDiscordChat.TownyDiscordChat.bukkit.Metrics;
 import github.scarsz.discordsrv.DiscordSRV;
 
 import java.util.Objects;
@@ -15,8 +14,6 @@ public class Main extends JavaPlugin {
     public FileConfiguration config = getConfig();
 
     public void onEnable() {
-        int pluginId = 10980;
-        new Metrics(this, pluginId);
 
         saveDefaultConfig();
         reloadConfig();
