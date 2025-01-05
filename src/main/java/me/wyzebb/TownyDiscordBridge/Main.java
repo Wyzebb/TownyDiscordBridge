@@ -1,7 +1,7 @@
-package com.TownyDiscordChat.TownyDiscordChat;
+package me.wyzebb.TownyDiscordBridge;
 
-import com.TownyDiscordChat.TownyDiscordChat.listeners.DiscordSRVListener;
-import com.TownyDiscordChat.TownyDiscordChat.listeners.TDCTownyListener;
+import me.wyzebb.TownyDiscordBridge.listeners.DiscordSRVListener;
+import me.wyzebb.TownyDiscordBridge.listeners.TDCTownyListener;
 import github.scarsz.discordsrv.DiscordSRV;
 
 import java.util.Objects;

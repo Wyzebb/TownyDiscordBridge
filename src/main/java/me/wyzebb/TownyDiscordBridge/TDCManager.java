@@ -1,4 +1,4 @@
-package com.TownyDiscordChat.TownyDiscordChat;
+package me.wyzebb.TownyDiscordBridge;
 
 import com.palmergames.bukkit.towny.TownyUniverse;
 import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;

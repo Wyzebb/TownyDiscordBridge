@@ -1,4 +1,4 @@
-package com.TownyDiscordChat.TownyDiscordChat;
+package me.wyzebb.TownyDiscordBridge;
 
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;

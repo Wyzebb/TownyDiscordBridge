@@ -1,11 +1,11 @@
-package com.TownyDiscordChat.TownyDiscordChat.listeners;
+package me.wyzebb.TownyDiscordBridge.listeners;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.UUID;
 
-import com.TownyDiscordChat.TownyDiscordChat.Main;
-import com.TownyDiscordChat.TownyDiscordChat.TDCManager;
+import me.wyzebb.TownyDiscordBridge.Main;
+import me.wyzebb.TownyDiscordBridge.TDCManager;
 import com.palmergames.bukkit.towny.event.*;
 import com.palmergames.bukkit.towny.event.town.TownKickEvent;
 import com.palmergames.bukkit.towny.event.town.TownLeaveEvent;

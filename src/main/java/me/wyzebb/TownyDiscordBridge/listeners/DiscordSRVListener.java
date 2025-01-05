@@ -1,6 +1,6 @@
-package com.TownyDiscordChat.TownyDiscordChat.listeners;
+package me.wyzebb.TownyDiscordBridge.listeners;
 
-import com.TownyDiscordChat.TownyDiscordChat.TDCManager;
+import me.wyzebb.TownyDiscordBridge.TDCManager;
 import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.AccountLinkedEvent;
 
