@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -440,8 +441,9 @@ public class TDCManager {
     }
 
     public static final void removePlayerRole(@NotNull UUID uUID, @NotNull Town town) {
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uUID);
-        removePlayerRole(offlinePlayer, town);
+        System.out.println("Using correct method");
+        Player player = Bukkit.getPlayer(uUID);
+        removePlayerRole(player, town);
     }
 
 
