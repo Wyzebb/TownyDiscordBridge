@@ -1,6 +1,6 @@
 package me.wyzebb.TownyDiscordBridge.listeners;
 
-import me.wyzebb.TownyDiscordBridge.TDCManager;
+import me.wyzebb.TownyDiscordBridge.TDBManager;
 import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.AccountLinkedEvent;
 
@@ -21,6 +21,6 @@ public class DiscordSRVListener {
         String discordId = event.getUser().getId();
         UUID uuid = offlinePlayer.getUniqueId();
 
-        TDCManager.discordUserRoleCheck(discordId, uuid);
+        TDBManager.discordUserRoleCheck(discordId, uuid);
     }
 }
