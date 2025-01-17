@@ -9,7 +9,8 @@ nation:
   VoiceCategoryId: 0
 
   CreateRoleIfNoneExists: true
-  RoleCreateColorCode: "0xc9c012"
+  RoleColourCode: "0xc9c012"
+
 town:
   CreateTextChannelForRole: true
   CreateVoiceChannelForRole: true
@@ -21,17 +22,17 @@ town:
   VoiceCategoryId: 0
 
   CreateRoleIfNoneExists: true
-  RoleCreateColorCode: "0x006798"
+  RoleColourCode: "0x006798"
 
 messages:
   TimeZone: "UTC"
   DateFormat: "dd/MM/yyyy - hh:mm a"
-  DiscordLogTextChannelId: 0
+  DiscordLogChannel: 0
 
-  Prefix: "&8[&2TDC Bot&8]"
+  Prefix: "&8[&2TDB Bot&8]"
 
-  Commands:
-    PleaseWait: "&7Please wait..."
+  commands:
+    Wait: "&7Please wait..."
     NoPermission: "&7You don't have permission to use this command!"
 
   Role:
