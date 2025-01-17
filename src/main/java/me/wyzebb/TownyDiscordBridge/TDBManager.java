@@ -643,12 +643,19 @@ public class TDBManager {
 
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Town town) {
-        plugin.getLogger().warning("26");
+        plugin.getLogger().warning("Attempting to create role for town: " + town.getName());
         Guild guild = member.getGuild();
 
-        if (plugin.config.getBoolean("town.CreateRoleIfNoneExists")) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, town.getName() + " doesn't have a Role, automatically creating one for you...!");
+        // Check if the town role already exists
+        Role existingRole = getRole(town);
+        if (existingRole != null) {
+            plugin.getLogger().warning("Role already exists for town: " + town.getName() + " - Reusing existing role.");
+            giveRoleToMember(offlinePlayer, member, existingRole);
+            return; // Exit early since the role already exists
+        }
 
+        if (plugin.config.getBoolean("town.CreateRoleIfNoneExists")) {
+            TDBMessages.sendMessageToPlayerGame(offlinePlayer, town.getName() + " doesn't have a Role, automatically creating one for you...");
             guild.createRole()
                     .setName("town-" + town.getName())
                     .setColor(Color.decode(plugin.config.getString("town.RoleColourCode")))
@@ -656,7 +663,7 @@ public class TDBManager {
                         plugin.getLogger().warning("[DEBUG] Successfully created role: " + role.getName());
                         plugin.getLogger().warning("[DEBUG] Member roles before assigning new role: " + member.getRoles());
 
-                        DiscordUtil.addRolesToMember(member, role);
+                        giveRoleToMember(offlinePlayer, member, role);
 
                         plugin.getLogger().warning("[DEBUG] Member roles after assigning new role: " + member.getRoles());
                         createChannels(guild, town, role);
@@ -674,12 +681,19 @@ public class TDBManager {
     }
 
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Nation nation) {
-        plugin.getLogger().warning("27");
+        plugin.getLogger().warning("Attempting to create role for nation: " + nation.getName());
         Guild guild = member.getGuild();
 
-        if (plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, nation.getName() + " doesn't have a Role, automatically creating one for you...!");
+        // Check if the nation role already exists
+        Role existingRole = getRole(nation);
+        if (existingRole != null) {
+            plugin.getLogger().warning("Role already exists for nation: " + nation.getName() + " - Reusing existing role.");
+            giveRoleToMember(offlinePlayer, member, existingRole);
+            return; // Exit early since the role already exists
+        }
 
+        if (plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
+            TDBMessages.sendMessageToPlayerGame(offlinePlayer, nation.getName() + " doesn't have a Role, automatically creating one for you...");
             guild.createRole()
                     .setName("nation-" + nation.getName())
                     .setColor(Color.decode(plugin.config.getString("nation.RoleColourCode")))
