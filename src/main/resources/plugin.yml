@@ -9,11 +9,9 @@ depend: [Towny, DiscordSRV]
 
 commands:
   townydiscordbridge:
-    description: Towny and Discord link plugin main command
+    description: Towny Discord Bridge plugin main command
     aliases: tdb
     usage: /townydiscordbridge <subcommand>
-
-# TODO: Finish command and permission definitions
 
 permissions:
   townydiscordbridge.admin:
