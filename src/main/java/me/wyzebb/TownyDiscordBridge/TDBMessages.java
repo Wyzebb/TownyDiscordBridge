@@ -7,6 +7,10 @@ import github.scarsz.discordsrv.dependencies.jda.api.entities.Member;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.Role;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import github.scarsz.discordsrv.util.DiscordUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -15,120 +19,126 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
+import static me.wyzebb.TownyDiscordBridge.TownyDiscordBridge.plugin;
 
 
-public class TDCMessages {
-    public static void sendMessageToPlayerGameAndLog(UUID uUID, String message) {
-        Preconditions.checkNotNull(uUID);
-        Preconditions.checkNotNull(message);
+public class TDBMessages {
+    public static void sendMessageToPlayerGameAndLog(UUID uuid, String msg) {
+        if (uuid == null || msg == null) {
+            throw new NullPointerException();
+        }
 
-        sendMessageToPlayerGame(Bukkit.getOfflinePlayer(uUID), message);
-        sendMessageToDiscordLogChannel(uUID, message);
+        sendMessageToPlayerGame(Bukkit.getOfflinePlayer(uuid), msg);
+        sendMessageToDiscordLogChannel(uuid, msg);
     }
 
 
-    public static void sendMessageToPlayerGame(Player player, String message) {
-        Preconditions.checkNotNull(player);
-        Preconditions.checkNotNull(message);
+    public static void sendMessageToPlayerGame(Player player, String msg) {
+        if (player == null || msg == null) {
+            throw new NullPointerException();
+        }
 
-        player.sendMessage(getPluginPrefix() + " " + getPluginPrefix());
+        player.sendMessage(getPluginPrefix() + " " + msg);
     }
 
 
-    public static void sendMessageToPlayerGame(OfflinePlayer offlinePlayer, String message) {
-        Preconditions.checkNotNull(offlinePlayer);
-        Preconditions.checkNotNull(message);
+    public static void sendMessageToPlayerGame(OfflinePlayer offlinePlayer, String msg) {
+        if (offlinePlayer == null || msg == null) {
+            throw new NullPointerException();
+        }
 
         if (offlinePlayer.getPlayer() != null) {
-            offlinePlayer.getPlayer().sendMessage(getPluginPrefix() + " " + getPluginPrefix());
+            offlinePlayer.getPlayer().sendMessage(getPluginPrefix() + " " + msg);
         }
     }
 
 
-    public static void sendMessageToDiscordLogChannel(String message) {
-        Preconditions.checkNotNull(message);
+    public static void sendMessageToDiscordLogChannel(String msg) {
+        if (msg == null || plugin.config.getString("messages.DiscordLogChannel") == null) {
+            throw new NullPointerException();
+        }
 
-        String discordLogTextChannelId = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.DiscordLogTextChannelId"));
+        String discordLogChannel = plugin.config.getString("messages.DiscordLogChannel");
 
-        if (!"0".equals(discordLogTextChannelId)) {
-            Guild guild = (Guild) Preconditions.checkNotNull(DiscordSRV.getPlugin().getMainGuild());
-            TextChannel textChannel = (TextChannel) Preconditions.checkNotNull(guild.getTextChannelById(discordLogTextChannelId));
+        if (!("0".equals(discordLogChannel))) {
+            Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
-            String timeZone = getConfigTimeZone();
+            assert discordLogChannel != null;
+            TextChannel textChannel = guild.getTextChannelById(discordLogChannel);
+
+            String timezone = getConfigTimeZone();
             String dateTimeFormat = getConfigDateTimeFormat();
 
-            Instant instant = Instant.now();
-            ZoneId zoneId = ZoneId.of(timeZone);
-            ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+            ZoneId zoneId = ZoneId.of(timezone);
+            ZonedDateTime zonedDateTime = Instant.now().atZone(zoneId);
             String logTime = DateTimeFormatter.ofPattern(dateTimeFormat).format(zonedDateTime);
 
             String logMsg = String.join("\n", new CharSequence[]{logTime, "--------------------------------------------------", "Message: " +
 
 
-                    getPluginPrefix() + " " + message, "--------------------------------------------------"});
-
+                    getPluginPrefix() + " " + msg, "--------------------------------------------------"});
 
             DiscordUtil.sendMessage(textChannel, ChatColor.stripColor(logMsg));
-            TownyDiscordBridge.plugin.getLogger().info(ChatColor.stripColor(logMsg));
+            plugin.getLogger().info(ChatColor.stripColor(logMsg));
         }
     }
 
 
-    public static void sendMessageToDiscordLogChannel(UUID uUID, String message) {
-        Preconditions.checkNotNull(message);
+    public static void sendMessageToDiscordLogChannel(UUID uuid, String msg) {
+        if (msg == null || uuid == null || plugin.config.getString("messages.DiscordLogChannel") == null) {
+            throw new NullPointerException();
+        }
 
-        String discordLogTextChannelId = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.DiscordLogTextChannelId"));
+        String discordLogChannel = plugin.config.getString("messages.DiscordLogChannel");
 
-        if (!"0".equals(discordLogTextChannelId)) {
-            OfflinePlayer offlinePlayer = (OfflinePlayer) Preconditions.checkNotNull(Bukkit.getOfflinePlayer(uUID));
-            Guild guild = (Guild) Preconditions.checkNotNull(DiscordSRV.getPlugin().getMainGuild());
-            TextChannel textChannel = (TextChannel) Preconditions.checkNotNull(guild.getTextChannelById(discordLogTextChannelId));
-            String discordId = (String) Preconditions.checkNotNull(TDCManager.getLinkedId(offlinePlayer));
-            Member member = (Member) Preconditions.checkNotNull(DiscordUtil.getMemberById(discordId));
-            List<Role> roles = ((Member) Preconditions.checkNotNull(member)).getRoles();
+        if (!("0".equals(discordLogChannel))) {
+            OfflinePlayer offlinePlayer = Preconditions.checkNotNull(Bukkit.getOfflinePlayer(uuid));
+            Guild guild = Preconditions.checkNotNull(DiscordSRV.getPlugin().getMainGuild());
 
-            String timeZone = getConfigTimeZone();
+            assert discordLogChannel != null;
+            TextChannel textChannel = guild.getTextChannelById(discordLogChannel);
+            String discordId = Preconditions.checkNotNull(TDBManager.getLinkedId(offlinePlayer));
+
+            Member member = Preconditions.checkNotNull(DiscordUtil.getMemberById(discordId));
+            List<Role> roles = Preconditions.checkNotNull(member).getRoles();
+
+            String timezone = getConfigTimeZone();
             String dateTimeFormat = getConfigDateTimeFormat();
 
-            Instant instant = Instant.now();
-            ZoneId zoneId = ZoneId.of(timeZone);
-            ZonedDateTime zonedDateTime = instant.atZone(zoneId);
+            ZoneId zoneId = ZoneId.of(timezone);
+            ZonedDateTime zonedDateTime = Instant.now().atZone(zoneId);
             String logTime = DateTimeFormatter.ofPattern(dateTimeFormat).format(zonedDateTime);
 
             String logMsg = String.join("\n", new CharSequence[]{logTime, "--------------------------------------------------", "Minecraft Name: " + offlinePlayer
 
 
-                    .getName(), "Minecraft UUID: " + String.valueOf(uUID), "Discord Name: " + member
+                    .getName(), "Minecraft UUID: " + String.valueOf(uuid), "Discord Name: " + member
 
                     .getUser().getAsMention(), "Discord ID: " +
-                    TDCManager.getLinkedId(offlinePlayer), "Discord Roles: " + String.valueOf(roles), "Message: " +
+                    TDBManager.getLinkedId(offlinePlayer), "Discord Roles: " + String.valueOf(roles), "Message: " +
 
-                    getPluginPrefix() + " " + message, "--------------------------------------------------"});
+                    getPluginPrefix() + " " + msg, "--------------------------------------------------"});
 
 
             DiscordUtil.sendMessage(textChannel, ChatColor.stripColor(logMsg));
-            TownyDiscordBridge.plugin.getLogger().info(ChatColor.stripColor(logMsg));
+            plugin.getLogger().info(ChatColor.stripColor(logMsg));
         }
     }
 
 
     public static String getPluginPrefix() {
-        String prefix = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString("messages.Prefix"));
+        String prefix = Preconditions.checkNotNull(plugin.config.getString("messages.Prefix"));
         return ChatColor.translateAlternateColorCodes('&', prefix);
     }
 
 
-    public static String getConfigMsgCommandsPleasewait() {
-        return getConfigMsg("messages.Commands.PleaseWait");
+    public static String getConfigMsgCommandWait() {
+        return getConfigMsg("messages.commands.Wait");
     }
 
 
-    public static String getConfigMsgCommandsNopermission() {
-        return getConfigMsg("messages.Commands.NoPermission");
+    public static String getConfigMsgCommandNoPerms() {
+        return getConfigMsg("messages.commands.NoPermission");
     }
 
 
@@ -238,26 +248,20 @@ public class TDCMessages {
 
 
     private static String getConfigMsg(String ymlPath) {
-        String plainText = (String) Preconditions.checkNotNull(TownyDiscordBridge.plugin.config.getString(ymlPath));
+        String plainText = Preconditions.checkNotNull(plugin.config.getString(ymlPath));
 
         return ChatColor.translateAlternateColorCodes('&', plainText);
     }
 
 
     private static String getConfigTimeZone() {
-        String timeZone = TownyDiscordBridge.plugin.config.getString("messages.TimeZone");
-        return (String) Preconditions.checkNotNull(timeZone);
+        String timezone = plugin.config.getString("messages.TimeZone");
+        return Preconditions.checkNotNull(timezone);
     }
 
 
     private static String getConfigDateTimeFormat() {
-        String dateTimeFormat = TownyDiscordBridge.plugin.config.getString("messages.DateFormat");
-        return (String) Preconditions.checkNotNull(dateTimeFormat);
+        String dateTimeFormat = plugin.config.getString("messages.DateFormat");
+        return Preconditions.checkNotNull(dateTimeFormat);
     }
 }
-
-
-/* Location:              /home/sugaku/Development/Minecraft/Plugins/TownyDiscordBridge/TownyDiscordBridge-Build-1.0.7.jar!/com/TownyDiscordBridge/TownyDiscordBridge/TDCMessages.class
- * Java compiler version: 11 (55.0)
- * JD-Core Version:       1.1.3
- */
