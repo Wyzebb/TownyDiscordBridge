@@ -22,7 +22,7 @@ public class TDBCommand implements CommandExecutor {
         Player player = ((Player) sender).getPlayer();
 
         if (args.length == 0) {
-            String msg = String.join("\n", ChatColor.DARK_GREEN + "------------------------", ChatColor.DARK_GREEN + "Plugin: " + ChatColor.DARK_GREEN + "TownyDiscordBridge", ChatColor.DARK_GREEN + "Version: " + ChatColor.DARK_GREEN + "1.0.8", ChatColor.DARK_GREEN + "Authors: " + ChatColor.DARK_GREEN + "thejames10,Hugo5000", ChatColor.DARK_GREEN + "Root Cmd: " + ChatColor.DARK_GREEN + "/TownyDiscordBridge", ChatColor.DARK_GREEN + "Alias: " + ChatColor.DARK_GREEN + "/TDC", ChatColor.DARK_GREEN + "---------------------------------");
+            String msg = String.join("\n", ChatColor.DARK_GREEN + "------------------------", ChatColor.DARK_GREEN + "Plugin: " + ChatColor.DARK_GREEN + "TownyDiscordBridge", ChatColor.DARK_GREEN + "Version: " + ChatColor.DARK_GREEN + "1.0.0", ChatColor.DARK_GREEN + "Root Cmd: " + ChatColor.DARK_GREEN + "/TownyDiscordBridge", ChatColor.DARK_GREEN + "Alias: " + ChatColor.DARK_GREEN + "/TDB", ChatColor.DARK_GREEN + "---------------------------------");
 
             TDBMessages.sendMessageToPlayerGame(player, msg);
 
