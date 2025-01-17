@@ -1,11 +1,10 @@
 package me.wyzebb.TownyDiscordBridge.listeners;
 
 import java.util.List;
-import java.util.Timer;
 import java.util.UUID;
 
 import me.wyzebb.TownyDiscordBridge.TownyDiscordBridge;
-import me.wyzebb.TownyDiscordBridge.TDCManager;
+import me.wyzebb.TownyDiscordBridge.TDBManager;
 import com.palmergames.bukkit.towny.event.*;
 import com.palmergames.bukkit.towny.event.town.TownKickEvent;
 import com.palmergames.bukkit.towny.event.town.TownLeaveEvent;
@@ -27,34 +26,19 @@ public class TownyListener implements Listener {
     public void onNewDay(NewDayEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("NewDayEvent fired!");
 
-        TDCManager.discordRoleCheckAllTownsAllNations();
-        TDCManager.discordTextChannelCheckAllTownsAllNations();
-        TDCManager.discordVoiceChannelCheckAllTownsAllNations();
-
-        Timer t = new java.util.Timer();
-        t.schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        TownyDiscordBridge.plugin.getLogger().warning("Running delayed task...");
-                        TDCManager.discordUserRoleCheckAllLinked();
-                    }
-                },
-                300000
-        );
+        TDBManager.discordRoleCheckAllTownsAllNations();
+        TDBManager.discordTextChannelCheckAllTownsAllNations();
+        TDBManager.discordVoiceChannelCheckAllTownsAllNations();
     }
 
     @EventHandler
     public void onPlayerJoinTown(TownAddResidentEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("TownAddResidentEvent fired!");
 
-        UUID UUID = event.getResident().getUUID();
+        UUID uuid = event.getResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(UUID);
-        Preconditions.checkNotNull(town);
-
-        TDCManager.givePlayerRole(UUID, town);
+        TDBManager.givePlayerRole(uuid, town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -64,7 +48,7 @@ public class TownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.givePlayerRole(UUID, nation);
+            TDBManager.givePlayerRole(uuid, nation);
         }
     }
 
@@ -72,13 +56,13 @@ public class TownyListener implements Listener {
     public void onPlayerKickedTown(TownKickEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("TownKickEvent fired!");
 
-        UUID UUID = event.getKickedResident().getUUID();
+        UUID uuid = event.getKickedResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(UUID);
+        Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town.getNationOrNull(),  town);
+        TDBManager.removePlayerRole(uuid, town.getNationOrNull(),  town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -88,7 +72,7 @@ public class TownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation, town);
+            TDBManager.removePlayerRole(uuid, nation, town);
         }
     }
 
@@ -96,13 +80,13 @@ public class TownyListener implements Listener {
     public void onPlayerLeave(TownLeaveEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("TownLeaveEvent fired!");
 
-        UUID UUID = event.getResident().getUUID();
+        UUID uuid = event.getResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(UUID);
+        Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town.getNationOrNull(), town);
+        TDBManager.removePlayerRole(uuid, town.getNationOrNull(), town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -112,7 +96,7 @@ public class TownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation, town);
+            TDBManager.removePlayerRole(uuid, nation, town);
         }
     }
 
@@ -120,13 +104,13 @@ public class TownyListener implements Listener {
     public void onPlayerLeaveTown(TownRemoveResidentEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("TownRemoveResidentEvent fired!");
 
-        UUID UUID = event.getResident().getUUID();
+        UUID uuid = event.getResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(UUID);
+        Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDCManager.removePlayerRole(UUID, town.getNationOrNull(), town);
+        TDBManager.removePlayerRole(uuid, town.getNationOrNull(), town);
 
         if (town.hasNation()) {
             Nation nation = null;
@@ -136,7 +120,7 @@ public class TownyListener implements Listener {
                 e.printStackTrace();
             }
             Preconditions.checkNotNull(nation);
-            TDCManager.removePlayerRole(UUID, nation, town);
+            TDBManager.removePlayerRole(uuid, nation, town);
         }
     }
 
@@ -146,7 +130,7 @@ public class TownyListener implements Listener {
 
         List<Resident> townResidents = event.getTown().getResidents();
         for (Resident townResident : townResidents) {
-            TDCManager.givePlayerRole(townResident.getUUID(), event.getNation());
+            TDBManager.givePlayerRole(townResident.getUUID(), event.getNation());
         }
     }
 
@@ -155,7 +139,7 @@ public class TownyListener implements Listener {
         TownyDiscordBridge.plugin.getLogger().warning("NationRemoveTownEvent fired!");
 
         for (Resident townResident : event.getTown().getResidents()) {
-            TDCManager.removePlayerRole(townResident.getUUID(), event.getNation(), event.getTown());
+            TDBManager.removePlayerRole(townResident.getUUID(), event.getNation(), event.getTown());
         }
     }
 
@@ -168,7 +152,7 @@ public class TownyListener implements Listener {
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
-        TDCManager.renameTown(OLD_NAME, NEW_NAME);
+        TDBManager.renameTown(OLD_NAME, NEW_NAME);
     }
 
     @EventHandler
@@ -180,7 +164,7 @@ public class TownyListener implements Listener {
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
-        TDCManager.renameNation(OLD_NAME, NEW_NAME);
+        TDBManager.renameNation(OLD_NAME, NEW_NAME);
     }
 
     @EventHandler
@@ -192,9 +176,9 @@ public class TownyListener implements Listener {
         Nation nation = event.getTown().getNationOrNull();
         if (nation != null)
             for (Resident townResident : event.getTown().getResidents())
-                TDCManager.removePlayerRole(townResident.getUUID(), nation, townResident.getTown());
+                TDBManager.removePlayerRole(townResident.getUUID(), nation, townResident.getTown());
 
-        TDCManager.deleteRoleAndChannelsFromTown(event.getTownName());
+        TDBManager.deleteRoleAndChannelsFromTown(event.getTownName());
     }
 
     @EventHandler
@@ -203,6 +187,6 @@ public class TownyListener implements Listener {
 
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
-        TDCManager.deleteRoleAndChannelsFromNation(event.getNationName());
+        TDBManager.deleteRoleAndChannelsFromNation(event.getNationName());
     }
 }
