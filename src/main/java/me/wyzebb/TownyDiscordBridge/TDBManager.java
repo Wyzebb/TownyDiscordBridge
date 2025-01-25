@@ -437,83 +437,168 @@ public class TDBManager {
     }
 
 
-    public static void removePlayerRole(@NotNull UUID uuid, @NotNull Nation nation, @NotNull Town town) {
+    public static void removePlayerRole(@NotNull UUID uuid, @NotNull Town town) {
         plugin.getLogger().warning("17");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-        removePlayerRole(offlinePlayer, nation);
+
         removePlayerRole(offlinePlayer, town);
-        plugin.getLogger().warning("HOPEFULLY REMOVED " + uuid + " from " + nation.getName());
-        plugin.getLogger().warning("HOPEFULLY REMOVED " + uuid + " from " + town.getName());
+
+        plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + town.getName() + " and nations if relevant");
     }
 
-
-    public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
-        plugin.getLogger().warning("18");
-        String linkedId = getLinkedId(offlinePlayer);
-
-        if (linkedId == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
-
-            return;
-        }
-
-        Member member = getMember(linkedId);
-
-        if (member == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-
-            return;
-        }
-
-        Role nationRole = getRole(nation);
-
-
-        if (nationRole != null && member.getRoles().contains(nationRole)) {
-
-
-            DiscordUtil.removeRolesFromMember(member, nationRole);
-
-
-            DiscordUtil.privateMessage(member.getUser(), "You have been removed from the discord " + nation + " channels!");
-
-
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the discord " + nation + " channels!");
-        }
-    }
+//    public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
+//        plugin.getLogger().warning("18 - Starting role removal process");
+//
+//        String linkedId = getLinkedId(offlinePlayer);
+//
+//        if (linkedId == null) {
+//            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
+//            return;
+//        }
+//
+//        Member member = getMember(linkedId);
+//
+//        if (member == null) {
+//            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
+//            return;
+//        }
+//
+//        // Remove town role
+//        Role townRole = getRole(town);
+//        if (townRole != null) {
+//            if (member.getRoles().contains(townRole)) {
+//                plugin.getLogger().warning("Removing town role: " + townRole.getName());
+//                DiscordUtil.removeRolesFromMember(member, townRole);
+//
+//                DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord " + townRole.getName() + " channels!");
+//                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord " + townRole.getName() + " channels!");
+//            } else {
+//                plugin.getLogger().warning("Member does not have town role: " + townRole.getName());
+//            }
+//        } else {
+//            plugin.getLogger().warning("Town role not found for: " + town.getName());
+//        }
+//
+//        // Remove nation role if applicable
+//        if (town.hasNation()) {
+//            Nation nation = town.getNationOrNull();
+//            Role nationRole = getRole(nation);
+//
+//            if (nationRole != null) {
+//                if (member.getRoles().contains(nationRole)) {
+//                    plugin.getLogger().warning("Removing nation role: " + nationRole.getName());
+//                    DiscordUtil.removeRolesFromMember(member, nationRole);
+//
+//                    DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord nation channels!");
+//                    TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord nation channels!");
+//                } else {
+//                    plugin.getLogger().warning("Member does not have nation role: " + nationRole.getName());
+//                }
+//            } else {
+//                plugin.getLogger().warning("Nation role not found for: " + (nation != null ? nation.getName() : "null nation"));
+//            }
+//        }
+//    }
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        plugin.getLogger().warning("18");
-        String linkedId = getLinkedId(offlinePlayer);
+        // Run this code asynchronously
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("18 - Starting role removal process");
 
-        if (linkedId == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
+            // Step 1: Retrieve the linked Discord ID
+            String linkedId = getLinkedId(offlinePlayer);
+            plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
-            return;
+            if (linkedId == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
+                );
+                return;
+            }
+
+            // Step 2: Retrieve the Discord member
+            Member member = getMember(linkedId);
+            plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
+
+            if (member == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
+                );
+                return;
+            }
+
+            // Step 3: Remove town role
+            Role townRole = getRole(town);
+            plugin.getLogger().warning("21 - Town role: " + (townRole != null ? townRole.getName() : "null"));
+
+            if (townRole != null) {
+                if (member.getRoles().contains(townRole)) {
+                    retryRoleRemoval(member, townRole, "Town", offlinePlayer);
+                } else {
+                    plugin.getLogger().warning("23 - Member does not have town role: " + townRole.getName());
+                }
+            } else {
+                plugin.getLogger().warning("24 - Town role not found for town: " + town.getName());
+            }
+
+            // Step 4: Remove nation role if applicable
+            if (town.hasNation()) {
+                Nation nation = town.getNationOrNull();
+                plugin.getLogger().warning("25 - Nation for town: " + (nation != null ? nation.getName() : "null"));
+
+                Role nationRole = getRole(nation);
+                plugin.getLogger().warning("26 - Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
+
+                if (nationRole != null) {
+                    if (member.getRoles().contains(nationRole)) {
+                        retryRoleRemoval(member, nationRole, "Nation", offlinePlayer);
+                    } else {
+                        plugin.getLogger().warning("28 - Member does not have nation role: " + nationRole.getName());
+                    }
+                } else {
+                    plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
+                }
+            }
+        });
+    }
+
+
+    private static void retryRoleRemoval(Member member, Role role, String roleType, OfflinePlayer offlinePlayer) {
+        int maxAttempts = 3;
+        int attempt = 1;
+        boolean success = false;
+
+        while (attempt <= maxAttempts) {
+            plugin.getLogger().warning(roleType + " role removal attempt " + attempt + " for role: " + role.getName());
+            try {
+                DiscordUtil.removeRolesFromMember(member, role);
+                if (!member.getRoles().contains(role)) {
+                    plugin.getLogger().warning(roleType + " role successfully removed: " + role.getName());
+                    DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord " + role.getName() + " channels!");
+                    TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord " + role.getName() + " channels!");
+                    success = true;
+                    break;
+                } else {
+                    plugin.getLogger().warning(roleType + " role still present: " + role.getName());
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error removing " + roleType + " role: " + role.getName() + ". Attempt " + attempt + " failed with exception: " + e.getMessage());
+            }
+            attempt++;
+            try {
+                Thread.sleep(1000); // Wait 1 second before retrying
+            } catch (InterruptedException ignored) {
+            }
         }
 
-        Member member = getMember(linkedId);
-
-        if (member == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-
-            return;
-        }
-
-        Role townRole = getRole(town);
-
-
-        if (townRole != null && member.getRoles().contains(townRole)) {
-
-
-            DiscordUtil.removeRolesFromMember(member, townRole);
-
-
-            DiscordUtil.privateMessage(member.getUser(), "You have been removed from the discord " + townRole + " channels!");
-
-
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the discord " + townRole + " channels!");
+        if (!success) {
+            plugin.getLogger().warning("Failed to remove " + roleType + " role after " + maxAttempts + " attempts: " + role.getName());
+            DiscordUtil.privateMessage(member.getUser(), "There was an issue removing your " + role.getName() + " role. Please contact a server admin.");
         }
     }
+
+
+
 
 
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
