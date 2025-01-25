@@ -6,6 +6,7 @@ import com.palmergames.bukkit.towny.exceptions.TownyException;
 import com.palmergames.bukkit.towny.object.Nation;
 import com.palmergames.bukkit.towny.object.Resident;
 import com.palmergames.bukkit.towny.object.Town;
+import com.palmergames.bukkit.towny.scheduling.impl.FoliaTaskScheduler;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
 import github.scarsz.discordsrv.dependencies.jda.api.Permission;
@@ -94,9 +95,8 @@ public class TDBManager {
         if (hasNation) {
             try {
                 nation = resident.getNation();
-            } catch (NotRegisteredException notRegisteredException) {
-                plugin.getLogger().warning("Expected error occurred");
             } catch (TownyException e) {
+                plugin.getLogger().warning("Nation not found");
                 throw new RuntimeException(e);
             }
         }
@@ -247,7 +247,7 @@ public class TDBManager {
                 allTownTextChannels = townTextCategory.getTextChannels();
             }
         }
-        String nationTextCategoryId = getNationTextCategoryId();
+        String nationTextCategoryId = getNationOrNullTextCategoryId();
         if (nationTextCategoryId != null) {
             Category nationTextCategory = guild.getCategoryById(nationTextCategoryId);
             if (nationTextCategory != null) {
@@ -293,7 +293,7 @@ public class TDBManager {
 
             for (Nation nation : nationsWithoutTextChannel) {
                 try {
-                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, getNationTextCategoryId());
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, getNationOrNullTextCategoryId());
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation text channels. Text category not found.");
                 }
@@ -311,7 +311,7 @@ public class TDBManager {
         List<Town> townsWithoutVoiceChannel = new ArrayList<>(allTowns);
         List<Nation> nationsWithoutVoiceChannel = new ArrayList<>(allNations);
         List<VoiceChannel> allTownVoiceChannels = guild.getCategoryById(getTownVoiceCategoryId()).getVoiceChannels();
-        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(getNationVoiceCategoryId()).getVoiceChannels();
+        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(getNationOrNullVoiceCategoryId()).getVoiceChannels();
 
         Preconditions.checkNotNull(allTowns);
         Preconditions.checkNotNull(allNations);
@@ -355,7 +355,7 @@ public class TDBManager {
 
             for (Nation nation : nationsWithoutVoiceChannel) {
                 try {
-                createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, getNationVoiceCategoryId(), null);
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, getNationOrNullVoiceCategoryId(), null);
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation voice channels. Voice category not found.");
                 }
@@ -365,7 +365,7 @@ public class TDBManager {
 
     public static void renameNation(String oldName, String newName) {
         plugin.getLogger().warning("6");
-        rename(oldName, newName, "nation-", getNationTextCategoryId(), getNationVoiceCategoryId());
+        rename(oldName, newName, "nation-", getNationOrNullTextCategoryId(), getNationOrNullVoiceCategoryId());
     }
 
     public static void renameTown(String oldName, String newName) {
@@ -406,8 +406,8 @@ public class TDBManager {
 
     public static void deleteRoleAndChannelsFromNation(String nationName) {
         plugin.getLogger().warning("12");
-        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationTextCategoryId(),
-                getNationVoiceCategoryId());
+        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationOrNullTextCategoryId(),
+                getNationOrNullVoiceCategoryId());
     }
 
 
@@ -565,7 +565,7 @@ public class TDBManager {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
             givePlayerRole(offlinePlayer, town);
             if (town.hasNation()) {
-                Nation nation = town.getNation();
+                Nation nation = town.getNationOrNull();
                 Preconditions.checkNotNull(nation);
                 TDBManager.givePlayerRole(uuid, nation);
             }
@@ -639,9 +639,6 @@ public class TDBManager {
         );
     }
 
-
-
-
     private static void createRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Town town) {
         plugin.getLogger().warning("Attempting to create role for town: " + town.getName());
         Guild guild = member.getGuild();
@@ -689,32 +686,41 @@ public class TDBManager {
         if (existingRole != null) {
             plugin.getLogger().warning("Role already exists for nation: " + nation.getName() + " - Reusing existing role.");
             giveRoleToMember(offlinePlayer, member, existingRole);
-            return; // Exit early since the role already exists
+            return; // Exit early if the role exists
         }
 
-        if (plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, nation.getName() + " doesn't have a Role, automatically creating one for you...");
-            guild.createRole()
-                    .setName("nation-" + nation.getName())
-                    .setColor(Color.decode(plugin.config.getString("nation.RoleColourCode")))
-                    .queue(role -> {
-                        plugin.getLogger().warning("[DEBUG] Successfully created role: " + role.getName());
-                        plugin.getLogger().warning("[DEBUG] Member roles before assigning new role: " + member.getRoles());
+        // Synchronize to prevent multiple threads creating the same role
+        synchronized (TDBManager.class) {
+            if (getRole(nation) != null) { // Double-check after acquiring the lock
+                plugin.getLogger().warning("Role now exists after re-check: " + nation.getName());
+                giveRoleToMember(offlinePlayer, member, getRole(nation));
+                return;
+            }
 
-                        giveRoleToMember(offlinePlayer, member, role);
+            // If role still doesn't exist, create it
+            if (plugin.config.getBoolean("nation.CreateRoleIfNoneExists")) {
+                TDBMessages.sendMessageToPlayerGame(offlinePlayer, nation.getName() + " doesn't have a Role, automatically creating one for you...");
+                guild.createRole()
+                        .setName("nation-" + nation.getName())
+                        .setColor(Color.decode(plugin.config.getString("nation.RoleColourCode")))
+                        .queue(role -> {
+                            plugin.getLogger().warning("[DEBUG] Successfully created role: " + role.getName());
+                            plugin.getLogger().warning("[DEBUG] Member roles before assigning new role: " + member.getRoles());
 
-                        plugin.getLogger().warning("[DEBUG] Member roles after assigning new role: " + member.getRoles());
-                        createChannels(guild, nation, role);
+                            giveRoleToMember(offlinePlayer, member, role);
+                            plugin.getLogger().warning("[DEBUG] Member roles after assigning new role: " + member.getRoles());
+                            createChannels(guild, nation, role); // Create channels after successful role creation
 
-                        TDBMessages.sendMessageToDiscordLogChannel(
-                                TDBMessages.getConfigMsgRoleCreateSuccess() + " nation-" + nation.getName() + " [27]"
-                        );
-                    }, failure -> {
-                        System.err.println("[ERROR] Failed to create role for nation: " + nation.getName());
-                        TDBMessages.sendMessageToDiscordLogChannel(
-                                TDBMessages.getConfigMsgRoleCreateFailure() + " nation-" + nation.getName() + " [27]"
-                        );
-                    });
+                            TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgRoleCreateSuccess() + " nation-" + nation.getName() + " [27]"
+                            );
+                        }, failure -> {
+                            System.err.println("[ERROR] Failed to create role for nation: " + nation.getName());
+                            TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgRoleCreateFailure() + " nation-" + nation.getName() + " [27]"
+                            );
+                        });
+            }
         }
     }
 
@@ -723,22 +729,41 @@ public class TDBManager {
 
     private static void createChannels(Guild guild, Town town, Role role) {
         plugin.getLogger().warning("28");
-        createChannels(guild, town.getName(), role, plugin.config.getBoolean("town.CreateVoiceChannelForRole"), plugin.config
-                        .getBoolean("town.CreateTextChannelForRole"), getTownVoiceCategoryId(),
-                getTownTextCategoryId());
+        createChannels(
+                guild,
+                town.getName(),
+                role,
+                plugin.config.getBoolean("town.CreateVoiceChannelForRole"),
+                plugin.config.getBoolean("town.CreateTextChannelForRole"),
+                getTownVoiceCategoryId(),
+                getTownTextCategoryId()
+        );
     }
-
 
     private static void createChannels(Guild guild, Nation nation, Role role) {
         plugin.getLogger().warning("29");
-        createChannels(guild, nation.getName(), role, plugin.config.getBoolean("nation.CreateVoiceChannelForRole"), plugin.config
-                        .getBoolean("nation.CreateTextChannelForRole"), getNationVoiceCategoryId(),
-                getNationTextCategoryId());
+        createChannels(
+                guild,
+                nation.getName(),
+                role,
+                plugin.config.getBoolean("nation.CreateVoiceChannelForRole"),
+                plugin.config.getBoolean("nation.CreateTextChannelForRole"),
+                getNationOrNullVoiceCategoryId(),
+                getNationOrNullTextCategoryId()
+        );
     }
 
-
-    private static void createChannels(@NotNull Guild guild, @NotNull String name, @NotNull Role role, boolean createVoiceChannel, boolean createTextChannel, @Nullable String voiceChannelCategoryId, @Nullable String textChannelCategoryId) {
+    private static void createChannels(
+            @NotNull Guild guild,
+            @NotNull String name,
+            @NotNull Role role,
+            boolean createVoiceChannel,
+            boolean createTextChannel,
+            @Nullable String voiceChannelCategoryId,
+            @Nullable String textChannelCategoryId
+    ) {
         plugin.getLogger().warning("30");
+
         long viewPermission = Permission.VIEW_CHANNEL.getRawValue();
         long messagePermission = Permission.MESSAGE_WRITE.getRawValue();
 
@@ -750,32 +775,57 @@ public class TDBManager {
         }
         long botId = bot.getIdLong();
 
-        Preconditions.checkNotNull(guild, "Channel creation error! @param guild null!");
-        Preconditions.checkNotNull(name, "Channel creation error! @param name null!");
-        Preconditions.checkNotNull(role, "Channel creation error! @param role null!");
-
-        if (createVoiceChannel) {
-
-
-            ChannelAction<VoiceChannel> voiceChannelAction = guild.createVoiceChannel(name)
-                    .addRolePermissionOverride(everyoneRoleId, 0L, viewPermission)
-                    .addRolePermissionOverride(roleId, viewPermission, 0L)
-                    .addMemberPermissionOverride(botId, viewPermission, 0L);
-            if (voiceChannelCategoryId != null) {
-                voiceChannelAction.setParent(guild.getCategoryById(voiceChannelCategoryId));
+        FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
+        f.runGlobalLater(scheduledTask -> {
+            // Pre-check for existing voice or text channels
+            if (createVoiceChannel) {
+                List<VoiceChannel> existingVoiceChannels = guild.getVoiceChannelsByName(name, true);
+                if (existingVoiceChannels.isEmpty()) { // Only create if no existing channel
+                    ChannelAction<VoiceChannel> voiceChannelAction = guild.createVoiceChannel(name)
+                            .addRolePermissionOverride(everyoneRoleId, 0L, viewPermission)
+                            .addRolePermissionOverride(roleId, viewPermission, 0L)
+                            .addMemberPermissionOverride(botId, viewPermission, 0L);
+                    if (voiceChannelCategoryId != null) {
+                        voiceChannelAction.setParent(guild.getCategoryById(voiceChannelCategoryId));
+                    }
+                    voiceChannelAction.queue(
+                            success -> TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgVoiceChannelCreateSuccess() + " [26]"
+                            ),
+                            failure -> TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgVoiceChannelCreateFailure() + " [26]"
+                            )
+                    );
+                } else {
+                    plugin.getLogger().warning("Voice channel already exists for: " + name);
+                }
             }
-            voiceChannelAction.queue(success -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgVoiceChannelCreateSuccess() + " " + TDBMessages.getConfigMsgVoiceChannelCreateSuccess() + " [26]"), failure -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgVoiceChannelCreateFailure() + " " + TDBMessages.getConfigMsgVoiceChannelCreateFailure() + " [26]"));
-        }
-        if (createTextChannel) {
-            final ChannelAction<TextChannel> textChannelAction = guild.createTextChannel(name)
-                    .addRolePermissionOverride(everyoneRoleId, viewPermission, 0L) // Positive, Negative
-                    .addRolePermissionOverride(roleId, viewPermission & messagePermission, 0L)
-                    .addMemberPermissionOverride(botId, viewPermission & messagePermission, 0L);
-            if (textChannelCategoryId != null) {
-                textChannelAction.setParent(guild.getCategoryById(textChannelCategoryId));
+
+            if (createTextChannel) {
+                List<TextChannel> existingTextChannels = guild.getTextChannelsByName(name, true);
+                if (existingTextChannels.isEmpty()) { // Only create if no existing channel
+                    ChannelAction<TextChannel> textChannelAction = guild.createTextChannel(name)
+                            .addRolePermissionOverride(everyoneRoleId, viewPermission, 0L)
+                            .addRolePermissionOverride(roleId, viewPermission & messagePermission, 0L)
+                            .addMemberPermissionOverride(botId, viewPermission & messagePermission, 0L);
+                    if (textChannelCategoryId != null) {
+                        textChannelAction.setParent(guild.getCategoryById(textChannelCategoryId));
+                    }
+                    textChannelAction.queue(
+                            success -> TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgTextChannelCreateSuccess() + " " + name + " [27]"
+                            ),
+                            failure -> TDBMessages.sendMessageToDiscordLogChannel(
+                                    TDBMessages.getConfigMsgTextChannelCreateFailure() + " " + name + " [27]"
+                            )
+                    );
+                } else {
+                    plugin.getLogger().warning("Text channel already exists for: " + name);
+                }
             }
-            textChannelAction.queue(success -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgTextChannelCreateSuccess() + " " + name + " [27]"), failure -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgTextChannelCreateFailure() + " " + name + " [27]"));
-        }
+        }, 100); //TODO: Fix delay and test
+
+
     }
 
 
@@ -806,23 +856,34 @@ public class TDBManager {
         return getRole("nation-" + nation.getName());
     }
 
-
     @Nullable
     private static Role getRole(@NotNull String name) {
-        plugin.getLogger().warning("37");
-        Role role = null;
+        plugin.getLogger().warning("37: " + name);
+        int retryCount = 5;
+        long delayMillis = 500;
 
+        for (int i = 0; i < retryCount; i++) {
+            try {
+                // Attempt to fetch the role
+                List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
+                if (!roles.isEmpty()) {
+                    plugin.getLogger().warning("Role found: " + name);
+                    return roles.get(0); // Return the first matching role
+                }
 
-        try {
-            role = DiscordUtil.getJda().getRolesByName(name, true).getFirst();
-            plugin.getLogger().warning("Role given 839");
-        } catch (Exception exception) {
-            plugin.getLogger().warning("AHA 841");
+                plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
+                Thread.sleep(delayMillis); // Wait before retrying
+
+            } catch (Exception exception) {
+                plugin.getLogger().warning("AHA GETROLE ERROR: " + exception.getMessage());
+                break; // Exit the loop if an exception occurs
+            }
         }
 
-
-        return role;
+        plugin.getLogger().warning("Role not found after retries: " + name);
+        return null;
     }
+
 
     @Nullable
     private static String getTownVoiceCategoryId() {
@@ -839,14 +900,14 @@ public class TDBManager {
     }
 
     @Nullable
-    private static String getNationVoiceCategoryId() {
+    private static String getNationOrNullVoiceCategoryId() {
         return plugin.config.getBoolean("nation.UseCategoryForText") ?
                 plugin.config.getString("nation.TextCategoryId") :
                 "159361257244327936";
     }
 
     @Nullable
-    private static String getNationTextCategoryId() {
+    private static String getNationOrNullTextCategoryId() {
         return plugin.config.getBoolean("nation.UseCategoryForVoice") ?
                 plugin.config.getString("nation.VoiceCategoryId") :
                 "159361257244327936";
