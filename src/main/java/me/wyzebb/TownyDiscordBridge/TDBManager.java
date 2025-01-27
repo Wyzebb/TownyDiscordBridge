@@ -22,7 +22,6 @@ import github.scarsz.discordsrv.util.DiscordUtil;
 
 import java.awt.Color;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
@@ -634,11 +633,7 @@ public class TDBManager {
         }
     }
 
-
-    private static final Set<UUID> processingRoles = ConcurrentHashMap.newKeySet();
-
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Town town) {
-        if (!processingRoles.add(uuid)) return; // Prevent re-entrant processing.
         try {
             plugin.getLogger().warning("23");
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
@@ -650,8 +645,6 @@ public class TDBManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            processingRoles.remove(uuid);
         }
     }
 
@@ -930,34 +923,68 @@ public class TDBManager {
         return getRole("nation-" + nation.getName());
     }
 
+//    @Nullable
+//    private static Role getRole(@NotNull String name) {
+//        plugin.getLogger().warning("37: " + name);
+//        int retryCount = 5;
+//        long delayMillis = 500;
+//
+//        for (int i = 0; i < retryCount; i++) {
+//            try {
+//                // Attempt to fetch the role
+//                List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
+//                if (!roles.isEmpty()) {
+//                    plugin.getLogger().warning("Role found: " + name);
+//                    return roles.get(0); // Return the first matching role
+//                }
+//
+//                plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
+//                Thread.sleep(delayMillis); // Wait before retrying
+//
+//            } catch (Exception exception) {
+//                plugin.getLogger().warning("AHA GETROLE ERROR: " + exception.getMessage());
+//                break; // Exit the loop if an exception occurs
+//            }
+//        }
+//
+//        plugin.getLogger().warning("Role not found after retries: " + name);
+//        return null;
+//    }
+
     @Nullable
     private static Role getRole(@NotNull String name) {
-        plugin.getLogger().warning("37: " + name);
-        int retryCount = 5;
-        long delayMillis = 500;
+        try {
+            return java.util.concurrent.Executors.newSingleThreadExecutor().submit(() -> {
+                plugin.getLogger().warning("37: " + name);
+                int retryCount = 5;
+                long delayMillis = 500;
 
-        for (int i = 0; i < retryCount; i++) {
-            try {
-                // Attempt to fetch the role
-                List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
-                if (!roles.isEmpty()) {
-                    plugin.getLogger().warning("Role found: " + name);
-                    return roles.get(0); // Return the first matching role
+                for (int i = 0; i < retryCount; i++) {
+                    try {
+                        // Attempt to fetch the role
+                        List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
+                        if (!roles.isEmpty()) {
+                            plugin.getLogger().warning("Role found: " + name);
+                            return roles.get(0); // Return the first matching role
+                        }
+
+                        plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
+                        Thread.sleep(delayMillis); // Wait before retrying
+
+                    } catch (Exception exception) {
+                        plugin.getLogger().warning("AHA GETROLE ERROR: " + exception.getMessage());
+                        break; // Exit the loop if an exception occurs
+                    }
                 }
 
-                plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
-                Thread.sleep(delayMillis); // Wait before retrying
-
-            } catch (Exception exception) {
-                plugin.getLogger().warning("AHA GETROLE ERROR: " + exception.getMessage());
-                break; // Exit the loop if an exception occurs
-            }
+                plugin.getLogger().warning("Role not found after retries: " + name);
+                return null;
+            }).get(); // Blocks until the task completes and gets the result
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to fetch role: " + e.getMessage());
+            return null;
         }
-
-        plugin.getLogger().warning("Role not found after retries: " + name);
-        return null;
     }
-
 
     @Nullable
     private static String getTownVoiceCategoryId() {
