@@ -2,9 +2,6 @@ nation:
   CreateTextChannelForRole: true
   CreateVoiceChannelForRole: true
 
-  UseCategoryForText: true
-  UseCategoryForVoice: true
-
   TextCategoryId: 0
   VoiceCategoryId: 0
 
@@ -14,9 +11,6 @@ nation:
 town:
   CreateTextChannelForRole: true
   CreateVoiceChannelForRole: true
-  
-  UseCategoryForText: true
-  UseCategoryForVoice: true
 
   TextCategoryId: 0
   VoiceCategoryId: 0
