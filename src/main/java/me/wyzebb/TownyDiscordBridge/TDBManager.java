@@ -247,7 +247,7 @@ public class TDBManager {
                 allTownTextChannels = townTextCategory.getTextChannels();
             }
         }
-        String nationTextCategoryId = getNationOrNullTextCategoryId();
+        String nationTextCategoryId = getNationTextCategoryId();
         if (nationTextCategoryId != null) {
             Category nationTextCategory = guild.getCategoryById(nationTextCategoryId);
             if (nationTextCategory != null) {
@@ -293,7 +293,7 @@ public class TDBManager {
 
             for (Nation nation : nationsWithoutTextChannel) {
                 try {
-                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, getNationOrNullTextCategoryId());
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, getNationTextCategoryId());
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation text channels. Text category not found.");
                 }
@@ -311,7 +311,7 @@ public class TDBManager {
         List<Town> townsWithoutVoiceChannel = new ArrayList<>(allTowns);
         List<Nation> nationsWithoutVoiceChannel = new ArrayList<>(allNations);
         List<VoiceChannel> allTownVoiceChannels = guild.getCategoryById(getTownVoiceCategoryId()).getVoiceChannels();
-        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(getNationOrNullVoiceCategoryId()).getVoiceChannels();
+        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(getNationVoiceCategoryId()).getVoiceChannels();
 
         Preconditions.checkNotNull(allTowns);
         Preconditions.checkNotNull(allNations);
@@ -355,7 +355,7 @@ public class TDBManager {
 
             for (Nation nation : nationsWithoutVoiceChannel) {
                 try {
-                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, getNationOrNullVoiceCategoryId(), null);
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, getNationVoiceCategoryId(), null);
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation voice channels. Voice category not found.");
                 }
@@ -365,7 +365,7 @@ public class TDBManager {
 
     public static void renameNation(String oldName, String newName) {
         plugin.getLogger().warning("6");
-        rename(oldName, newName, "nation-", getNationOrNullTextCategoryId(), getNationOrNullVoiceCategoryId());
+        rename(oldName, newName, "nation-", getNationTextCategoryId(), getNationVoiceCategoryId());
     }
 
     public static void renameTown(String oldName, String newName) {
@@ -406,8 +406,8 @@ public class TDBManager {
 
     public static void deleteRoleAndChannelsFromNation(String nationName) {
         plugin.getLogger().warning("12");
-        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationOrNullTextCategoryId(),
-                getNationOrNullVoiceCategoryId());
+        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationTextCategoryId(),
+                getNationVoiceCategoryId());
     }
 
 
@@ -822,8 +822,8 @@ public class TDBManager {
                 role,
                 plugin.config.getBoolean("nation.CreateVoiceChannelForRole"),
                 plugin.config.getBoolean("nation.CreateTextChannelForRole"),
-                getNationOrNullVoiceCategoryId(),
-                getNationOrNullTextCategoryId()
+                getNationVoiceCategoryId(),
+                getNationTextCategoryId()
         );
     }
 
@@ -970,16 +970,12 @@ public class TDBManager {
     }
 
     @Nullable
-    private static String getNationOrNullVoiceCategoryId() {
-        return plugin.config.getBoolean("nation.UseCategoryForVoice") ?
-                plugin.config.getString("nation.VoiceCategoryId") :
-                "159361257244327936";
+    private static String getNationVoiceCategoryId() {
+        return plugin.config.getString("nation.VoiceCategoryId");
     }
 
     @Nullable
-    private static String getNationOrNullTextCategoryId() {
-        return plugin.config.getBoolean("nation.UseCategoryForText") ?
-                plugin.config.getString("nation.TextCategoryId") :
-                "159361257244327936";
+    private static String getNationTextCategoryId() {
+        return plugin.config.getString("nation.TextCategoryId");
     }
 }
