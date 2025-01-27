@@ -598,9 +598,6 @@ public class TDBManager {
     }
 
 
-
-
-
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
         plugin.getLogger().warning("20");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
@@ -662,7 +659,6 @@ public class TDBManager {
     }
 
 
-
     public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
         plugin.getLogger().warning("24");
 
@@ -694,8 +690,6 @@ public class TDBManager {
             createRole(offlinePlayer, member, town);
         }
     }
-
-
 
 
     private static void giveRoleToMember(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Role role) {
@@ -808,8 +802,6 @@ public class TDBManager {
             }
         }
     }
-
-
 
 
     private static void createChannels(Guild guild, Town town, Role role) {
@@ -972,29 +964,25 @@ public class TDBManager {
 
     @Nullable
     private static String getTownVoiceCategoryId() {
-        return plugin.config.getBoolean("town.UseCategoryForText") ?
-                plugin.config.getString("town.TextCategoryId") :
-                "159361257244327936";
+        return plugin.config.getString("town.VoiceCategoryId");
     }
 
     @Nullable
     private static String getTownTextCategoryId() {
-        return plugin.config.getBoolean("town.UseCategoryForVoice") ?
-                plugin.config.getString("town.VoiceCategoryId") :
-                "159361257244327936";
+        return plugin.config.getString("town.TextCategoryId");
     }
 
     @Nullable
     private static String getNationOrNullVoiceCategoryId() {
-        return plugin.config.getBoolean("nation.UseCategoryForText") ?
-                plugin.config.getString("nation.TextCategoryId") :
+        return plugin.config.getBoolean("nation.UseCategoryForVoice") ?
+                plugin.config.getString("nation.VoiceCategoryId") :
                 "159361257244327936";
     }
 
     @Nullable
     private static String getNationOrNullTextCategoryId() {
-        return plugin.config.getBoolean("nation.UseCategoryForVoice") ?
-                plugin.config.getString("nation.VoiceCategoryId") :
+        return plugin.config.getBoolean("nation.UseCategoryForText") ?
+                plugin.config.getString("nation.TextCategoryId") :
                 "159361257244327936";
     }
 }
