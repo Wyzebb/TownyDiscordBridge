@@ -533,7 +533,9 @@ public class TDBManager {
 
             if (townRole != null) {
                 if (member.getRoles().contains(townRole)) {
-                    retryRoleRemoval(member, townRole, "Town", offlinePlayer);
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                            retryRoleRemoval(member, townRole, "Town", offlinePlayer)
+                    );
                 } else {
                     plugin.getLogger().warning("23 - Member does not have town role: " + townRole.getName());
                 }
@@ -551,7 +553,9 @@ public class TDBManager {
 
                 if (nationRole != null) {
                     if (member.getRoles().contains(nationRole)) {
-                        retryRoleRemoval(member, nationRole, "Nation", offlinePlayer);
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                                retryRoleRemoval(member, nationRole, "Nation", offlinePlayer)
+                        );
                     } else {
                         plugin.getLogger().warning("28 - Member does not have nation role: " + nationRole.getName());
                     }
