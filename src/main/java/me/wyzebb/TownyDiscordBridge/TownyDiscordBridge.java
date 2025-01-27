@@ -30,9 +30,6 @@ public class TownyDiscordBridge extends JavaPlugin {
 
         // Register command
         Objects.requireNonNull(getCommand("townydiscordbridge")).setExecutor(new TDBCommand());
-
-//        new TownyListener(plugin); THIS WORKS FOR EVENT REGISTRATION
-//        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public void onDisable() {
