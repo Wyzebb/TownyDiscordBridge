@@ -566,7 +566,6 @@ public class TDBManager {
     private static void retryRoleRemoval(Member member, Role role, String roleType, OfflinePlayer offlinePlayer) {
         int maxAttempts = 3;
         int attempt = 1;
-        boolean success = false;
 
         while (attempt <= maxAttempts) {
             plugin.getLogger().warning(roleType + " role removal attempt " + attempt + " for role: " + role.getName());
@@ -576,7 +575,6 @@ public class TDBManager {
                     plugin.getLogger().warning(roleType + " role successfully removed: " + role.getName());
                     DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord " + role.getName() + " channels!");
                     TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord " + role.getName() + " channels!");
-                    success = true;
                     break;
                 } else {
                     plugin.getLogger().warning(roleType + " role still present: " + role.getName());
@@ -589,11 +587,6 @@ public class TDBManager {
                 Thread.sleep(1000); // Wait 1 second before retrying
             } catch (InterruptedException ignored) {
             }
-        }
-
-        if (!success) {
-            plugin.getLogger().warning("Failed to remove " + roleType + " role after " + maxAttempts + " attempts: " + role.getName());
-            DiscordUtil.privateMessage(member.getUser(), "There was an issue removing your " + role.getName() + " role. Please contact a server admin.");
         }
     }
 
