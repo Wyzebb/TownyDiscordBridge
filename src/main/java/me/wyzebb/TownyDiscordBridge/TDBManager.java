@@ -594,6 +594,46 @@ public class TDBManager {
     }
 
 
+
+    private static void retryRoleAssignment(Member member, Role role, String roleType, OfflinePlayer offlinePlayer) {
+        int maxAttempts = 3;
+        int attempt = 1;
+        Guild guild = member.getGuild();
+
+        while (attempt <= maxAttempts) {
+            plugin.getLogger().warning(roleType + " role assignment attempt " + attempt + " for role: " + role.getName());
+            try {
+                guild.addRoleToMember(member, role).queue(
+                        success -> {
+                            plugin.getLogger().warning("[DEBUG] Successfully assigned role: " + role.getName());
+                            plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
+                            DiscordUtil.privateMessage(
+                                    member.getUser(),
+                                    "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
+                            );
+                            TDBMessages.sendMessageToPlayerGame(
+                                    offlinePlayer,
+                                    "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
+                            );
+                        },
+                        failure -> {
+                            System.err.println("[ERROR] Failed to assign role: " + role.getName() + " to member: " + member.getEffectiveName());
+                            failure.printStackTrace();
+                        }
+                );
+            } catch (Exception e) {
+                plugin.getLogger().warning("Error removing " + roleType + " role: " + role.getName() + ". Attempt " + attempt + " failed with exception: " + e.getMessage());
+            }
+            attempt++;
+            try {
+                Thread.sleep(1000); // Wait 1 second before retrying
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+    }
+
+
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
         plugin.getLogger().warning("20");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
@@ -638,49 +678,80 @@ public class TDBManager {
             plugin.getLogger().warning("23");
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
             givePlayerRole(offlinePlayer, town);
-            if (town.hasNation()) {
-                Nation nation = town.getNationOrNull();
-                Preconditions.checkNotNull(nation);
-                TDBManager.givePlayerRole(uuid, nation);
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
     public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        plugin.getLogger().warning("24");
+        // Run this code asynchronously
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("18 - Starting role add process");
 
-        String linkedId = getLinkedId(offlinePlayer);
+            // Step 1: Retrieve the linked Discord ID
+            String linkedId = getLinkedId(offlinePlayer);
+            plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
-        if (linkedId == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do '/discord link' to get started!");
-            return;
-        }
-
-        Member member = getMember(linkedId);
-
-        if (member == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-            return;
-        }
-
-        Role townRole = getRole(town);
-
-        if (townRole != null) {
-            if (!member.getRoles().contains(townRole)) {
-                plugin.getLogger().warning("[DEBUG] Member roles before: " + member.getRoles());
-                giveRoleToMember(offlinePlayer, member, townRole);
-                plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
-            } else {
-                plugin.getLogger().warning("Role already assigned: " + townRole.getName());
+            if (linkedId == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
+                );
+                return;
             }
-        } else {
-            createRole(offlinePlayer, member, town);
-        }
-    }
 
+            // Step 2: Retrieve the Discord member
+            Member member = getMember(linkedId);
+            plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
+
+            if (member == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
+                );
+                return;
+            }
+
+            // Step 3: Remove town role
+            Role townRole = getRole(town);
+            plugin.getLogger().warning("21 - Town role: " + (townRole != null ? townRole.getName() : "null"));
+
+            if (townRole != null) {
+                if (!member.getRoles().contains(townRole)) {
+                    plugin.getLogger().warning("[DEBUG] Member roles before: " + member.getRoles());
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                            retryRoleAssignment(member, townRole, "Town", offlinePlayer)
+                    );
+                    giveRoleToMember(offlinePlayer, member, townRole);//TODO
+                    plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
+                } else {
+                    plugin.getLogger().warning("Role already assigned: " + townRole.getName());
+                }
+            } else {
+                createRole(offlinePlayer, member, town);
+            }
+
+            // Step 4: Remove nation role if applicable
+            if (town.hasNation()) {
+                Nation nation = town.getNationOrNull();
+                plugin.getLogger().warning("25 - Nation for town: " + (nation != null ? nation.getName() : "null"));
+
+                Role nationRole = getRole(nation);
+                plugin.getLogger().warning("26 - Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
+
+                if (nationRole != null) {
+                    if (!member.getRoles().contains(nationRole)) {
+                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                                retryRoleAssignment(member, nationRole, "Nation", offlinePlayer)
+                        );
+                        giveRoleToMember(offlinePlayer, member, townRole);//TODO
+                    } else {
+                        plugin.getLogger().warning("28 - Member does not have nation role: " + nationRole.getName());
+                    }
+                } else {
+                    plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
+                }
+            }
+        });
+    }
 
     private static void giveRoleToMember(@NotNull OfflinePlayer offlinePlayer, @NotNull Member member, @NotNull Role role) {
         plugin.getLogger().warning("[DEBUG] Attempting to assign role: " + role.getName() + " to member: " + member.getEffectiveName());
