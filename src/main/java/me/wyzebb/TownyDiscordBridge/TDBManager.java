@@ -10,12 +10,7 @@ import com.palmergames.bukkit.towny.scheduling.impl.FoliaTaskScheduler;
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
 import github.scarsz.discordsrv.dependencies.jda.api.Permission;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.Category;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.Guild;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.Member;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.Role;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
-import github.scarsz.discordsrv.dependencies.jda.api.entities.VoiceChannel;
+import github.scarsz.discordsrv.dependencies.jda.api.entities.*;
 import github.scarsz.discordsrv.dependencies.jda.api.requests.restaction.ChannelAction;
 import github.scarsz.discordsrv.dependencies.jda.api.requests.restaction.RoleAction;
 import github.scarsz.discordsrv.util.DiscordUtil;
@@ -902,15 +897,17 @@ public class TDBManager {
     ) {
         plugin.getLogger().warning("30");
 
-        long viewPermission = Permission.VIEW_CHANNEL.getRawValue();
-        long messagePermission = Permission.MESSAGE_WRITE.getRawValue();
+        long VIEW_PERM = Permission.VIEW_CHANNEL.getRawValue();
+        long VC_CONNECT_PERM = Permission.VOICE_CONNECT.getRawValue();
 
         long everyoneRoleId = guild.getPublicRole().getIdLong();
         long roleId = role.getIdLong();
         Member bot = guild.getMember(DiscordSRV.getPlugin().getJda().getSelfUser());
+
         if (bot == null) {
             return;
         }
+
         long botId = bot.getIdLong();
 
         FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
@@ -920,9 +917,12 @@ public class TDBManager {
                 List<VoiceChannel> existingVoiceChannels = guild.getVoiceChannelsByName(name, true);
                 if (existingVoiceChannels.isEmpty()) { // Only create if no existing channel
                     ChannelAction<VoiceChannel> voiceChannelAction = guild.createVoiceChannel(name)
-                            .addRolePermissionOverride(everyoneRoleId, 0L, viewPermission)
-                            .addRolePermissionOverride(roleId, viewPermission, 0L)
-                            .addMemberPermissionOverride(botId, viewPermission, 0L);
+                            .addRolePermissionOverride(everyoneRoleId, VIEW_PERM, 0L)
+
+                            .addRolePermissionOverride(everyoneRoleId, 0L, VC_CONNECT_PERM)
+                            .addRolePermissionOverride(roleId, VC_CONNECT_PERM, 0L)
+                            .addRolePermissionOverride(botId, VC_CONNECT_PERM, 0L);
+
                     if (voiceChannelCategoryId != null) {
                         voiceChannelAction.setParent(guild.getCategoryById(voiceChannelCategoryId));
                     }
@@ -943,9 +943,10 @@ public class TDBManager {
                 List<TextChannel> existingTextChannels = guild.getTextChannelsByName(name, true);
                 if (existingTextChannels.isEmpty()) { // Only create if no existing channel
                     ChannelAction<TextChannel> textChannelAction = guild.createTextChannel(name)
-                            .addRolePermissionOverride(everyoneRoleId, viewPermission, 0L)
-                            .addRolePermissionOverride(roleId, viewPermission & messagePermission, 0L)
-                            .addMemberPermissionOverride(botId, viewPermission & messagePermission, 0L);
+                            .addRolePermissionOverride(everyoneRoleId, 0L, VIEW_PERM)
+                            .addRolePermissionOverride(roleId, VIEW_PERM, 0L)
+                            .addMemberPermissionOverride(botId, VIEW_PERM, 0L);
+
                     if (textChannelCategoryId != null) {
                         textChannelAction.setParent(guild.getCategoryById(textChannelCategoryId));
                     }
@@ -957,6 +958,14 @@ public class TDBManager {
                                     TDBMessages.getConfigMsgTextChannelCreateFailure() + " " + name + " [27]"
                             )
                     );
+
+                    Member member = guild.getMemberById(everyoneRoleId);
+                    Member roleMember = guild.getMemberById(roleId);
+                    Member botMember = guild.getMemberById(botId);
+
+                    existingTextChannels.getFirst().upsertPermissionOverride(member).deny(Permission.MESSAGE_HISTORY).queue();
+                    existingTextChannels.getFirst().upsertPermissionOverride(roleMember).grant(Permission.MESSAGE_HISTORY).queue();
+                    existingTextChannels.getFirst().upsertPermissionOverride(botMember).grant(Permission.MESSAGE_HISTORY).queue();
                 } else {
                     plugin.getLogger().warning("Text channel already exists for: " + name);
                 }
