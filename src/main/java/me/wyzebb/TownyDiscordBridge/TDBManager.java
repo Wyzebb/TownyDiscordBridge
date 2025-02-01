@@ -14,33 +14,32 @@ import github.scarsz.discordsrv.dependencies.jda.api.entities.*;
 import github.scarsz.discordsrv.dependencies.jda.api.requests.restaction.ChannelAction;
 import github.scarsz.discordsrv.dependencies.jda.api.requests.restaction.RoleAction;
 import github.scarsz.discordsrv.util.DiscordUtil;
-
-import java.awt.Color;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
+import me.wyzebb.TownyDiscordBridge.util.ConfigGetters;
+import me.wyzebb.TownyDiscordBridge.util.GeneralUtility;
+import me.wyzebb.TownyDiscordBridge.util.RetryMethods;
+import me.wyzebb.TownyDiscordBridge.util.SimpleGetters;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import static me.wyzebb.TownyDiscordBridge.TownyDiscordBridge.plugin;
 
 
 public class TDBManager {
-    public static void discordUserRoleCheckAllLinked() {
-        plugin.getLogger().warning("1");
+    public static void syncAllUsersRolesToDiscord() {
         Map<String, UUID> linkedAccounts = DiscordSRV.getPlugin().getAccountLinkManager().getLinkedAccounts();
-        linkedAccounts.forEach(TDBManager::discordUserRoleCheck);
+        linkedAccounts.forEach(TDBManager::syncUserRolesToDiscord);
     }
 
-    private static int boolToInt(boolean val) {
-        return val ? 1 : 0;
-    }
-
-
-    public static void discordUserRoleCheck(String discordId, UUID uuid) {
-        plugin.getLogger().warning("2");
+    public static void syncUserRolesToDiscord(String discordId, UUID uuid) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         if (!offlinePlayer.hasPlayedBefore()) {
@@ -112,14 +111,14 @@ public class TDBManager {
             }
         }
 
-        int i = (!memberTownRoles.isEmpty() ? 1 : 0) & boolToInt(townRoleExists);
-        int j = (!memberNationRoles.isEmpty() ? 1 : 0) & ((nation != null) ? 1 : 0) & boolToInt(nationRoleExists);
+        int i = (!memberTownRoles.isEmpty() ? 1 : 0) & GeneralUtility.boolToInt(townRoleExists);
+        int j = (!memberNationRoles.isEmpty() ? 1 : 0) & ((nation != null) ? 1 : 0) & GeneralUtility.boolToInt(nationRoleExists);
 
         if (((!hasTown ? 1 : 0) & (!hasNation ? 1 : 0) & ((i == 0) ? 1 : 0) & ((j == 0) ? 1 : 0)) != 0) {
             TDBMessages.sendMessageToPlayerGameAndLog(uuid, TDBMessages.getConfigMsgRoleDoNothingSuccess() + "[1]");
-        } else if (((!hasTown ? 1 : 0) & boolToInt(hasNation) & ((i == 0) ? 1 : 0) & ((j == 0) ? 1 : 0)) != 0) {
+        } else if (((!hasTown ? 1 : 0) & GeneralUtility.boolToInt(hasNation) & ((i == 0) ? 1 : 0) & ((j == 0) ? 1 : 0)) != 0) {
             TDBMessages.sendMessageToDiscordLogChannel(uuid, TDBMessages.getConfigMsgRoleDoNothingSuccess() + " [5]");
-        } else if (((!hasTown ? 1 : 0) & boolToInt(hasNation) & ((i == 0) ? 1 : 0) & j) != 0) {
+        } else if (((!hasTown ? 1 : 0) & GeneralUtility.boolToInt(hasNation) & ((i == 0) ? 1 : 0) & j) != 0) {
             TDBMessages.sendMessageToDiscordLogChannel(uuid, TDBMessages.getConfigMsgRoleDoNothingSuccess() + " [6]");
         } else if (((!hasNation ? 1 : 0) & ((i == 0) ? 1 : 0) & ((j == 0) ? 1 : 0)) != 0) {
             if (town != null) {
@@ -151,8 +150,6 @@ public class TDBManager {
             }
             for (Role memberTownRole : memberTownRoles) {
                 guild.addRoleToMember(discordId, memberTownRole).queueAfter(10L, TimeUnit.SECONDS, success -> TDBMessages.sendMessageToPlayerGameAndLog(uuid, TDBMessages.getConfigMsgRoleAddSuccess() + " " + TDBMessages.getConfigMsgRoleAddSuccess() + " [14]"), failure -> TDBMessages.sendMessageToPlayerGameAndLog(uuid, TDBMessages.getConfigMsgRoleAddFailure() + " " + TDBMessages.getConfigMsgRoleAddFailure() + " [14]"));
-
-
             }
 
         } else if (j == 0) {
@@ -172,10 +169,7 @@ public class TDBManager {
         }
     }
 
-
-    public static void discordRoleCheckAllTownsAllNations() {
-        plugin.getLogger().warning("3");
-
+    public static void syncAllTownsAllNations() {
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Role> allRoles = guild.getRoles();
@@ -224,8 +218,7 @@ public class TDBManager {
     }
 
 
-    public static void discordTextChannelCheckAllTownsAllNations() {
-        plugin.getLogger().warning("4");
+    public static void syncTextChannelCheckAllTownsAllNations() {
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Town> allTowns = new ArrayList<>(TownyUniverse.getInstance().getTowns());
@@ -234,14 +227,14 @@ public class TDBManager {
         List<Nation> nationsWithoutTextChannel = new ArrayList<>(allNations);
         List<TextChannel> allTownTextChannels = new ArrayList<>();
         List<TextChannel> allNationTextChannels = new ArrayList<>();
-        String townTextCategoryId = getTownTextCategoryId();
+        String townTextCategoryId = ConfigGetters.getTownTextCategoryId();
         if (townTextCategoryId != null) {
             Category townTextCategory = guild.getCategoryById(townTextCategoryId);
             if (townTextCategory != null) {
                 allTownTextChannels = townTextCategory.getTextChannels();
             }
         }
-        String nationTextCategoryId = getNationTextCategoryId();
+        String nationTextCategoryId = ConfigGetters.getNationTextCategoryId();
         if (nationTextCategoryId != null) {
             Category nationTextCategory = guild.getCategoryById(nationTextCategoryId);
             if (nationTextCategory != null) {
@@ -268,14 +261,12 @@ public class TDBManager {
         }
 
 
-        if (!townsWithoutTextChannel.isEmpty()) { // todo: Fix Text Channels, Default to visible.
-            plugin.getLogger().info("Reached townsWithoutTextChannel.isEmpty()");
-
+        if (!townsWithoutTextChannel.isEmpty()) {
             for (Town town : townsWithoutTextChannel) {
-                plugin.getLogger().warning(getTownTextCategoryId());
+                plugin.getLogger().warning(ConfigGetters.getTownTextCategoryId());
                 plugin.getLogger().warning(town.getName());
                 try {
-                    createChannels(guild, town.getName(), guild.getRolesByName("town-" + town.getName(), true).getFirst(), false, true, null, getTownTextCategoryId());
+                    createChannels(guild, town.getName(), guild.getRolesByName("town-" + town.getName(), true).getFirst(), false, true, null, ConfigGetters.getTownTextCategoryId());
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create town text channels. Text category not found.");
                 }
@@ -283,11 +274,9 @@ public class TDBManager {
         }
 
         if (!nationsWithoutTextChannel.isEmpty()) {
-            plugin.getLogger().info("Reached nationsWithoutVoiceChannel.isEmpty()");
-
             for (Nation nation : nationsWithoutTextChannel) {
                 try {
-                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, getNationTextCategoryId());
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), false, true, null, ConfigGetters.getNationTextCategoryId());
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation text channels. Text category not found.");
                 }
@@ -296,16 +285,15 @@ public class TDBManager {
     }
 
 
-    public static void discordVoiceChannelCheckAllTownsAllNations() {
-        plugin.getLogger().warning("5");
+    public static void syncVoiceChannelCheckAllTownsAllNations() {
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         List<Town> allTowns = new ArrayList<>(TownyUniverse.getInstance().getTowns());
         List<Nation> allNations = new ArrayList<>(TownyUniverse.getInstance().getNations());
         List<Town> townsWithoutVoiceChannel = new ArrayList<>(allTowns);
         List<Nation> nationsWithoutVoiceChannel = new ArrayList<>(allNations);
-        List<VoiceChannel> allTownVoiceChannels = guild.getCategoryById(getTownVoiceCategoryId()).getVoiceChannels();
-        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(getNationVoiceCategoryId()).getVoiceChannels();
+        List<VoiceChannel> allTownVoiceChannels = guild.getCategoryById(ConfigGetters.getTownVoiceCategoryId()).getVoiceChannels();
+        List<VoiceChannel> allNationVoiceChannels = guild.getCategoryById(ConfigGetters.getNationVoiceCategoryId()).getVoiceChannels();
 
         Preconditions.checkNotNull(allTowns);
         Preconditions.checkNotNull(allNations);
@@ -332,12 +320,10 @@ public class TDBManager {
 
 
         if (!townsWithoutVoiceChannel.isEmpty()) {
-            plugin.getLogger().info("Reached townsWithoutVoiceChannel.isEmpty()");
-
             for (Town town : townsWithoutVoiceChannel) {
-                plugin.getLogger().warning(getTownVoiceCategoryId());
+                plugin.getLogger().warning(ConfigGetters.getTownVoiceCategoryId());
                 try {
-                    createChannels(guild, town.getName(), guild.getRolesByName("town-" + town.getName(), true).getFirst(), true, false, getTownVoiceCategoryId(), null);
+                    createChannels(guild, town.getName(), guild.getRolesByName("town-" + town.getName(), true).getFirst(), true, false, ConfigGetters.getTownVoiceCategoryId(), null);
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create town voice channels. Voice category not found.");
                 }
@@ -345,11 +331,9 @@ public class TDBManager {
         }
 
         if (!nationsWithoutVoiceChannel.isEmpty()) {
-            plugin.getLogger().info("Reached nationsWithoutVoiceChannel.isEmpty()");
-
             for (Nation nation : nationsWithoutVoiceChannel) {
                 try {
-                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, getNationVoiceCategoryId(), null);
+                    createChannels(guild, nation.getName(), guild.getRolesByName("nation-" + nation.getName(), true).getFirst(), true, false, ConfigGetters.getNationVoiceCategoryId(), null);
                 } catch (NullPointerException exception) {
                     plugin.getLogger().warning("Failed to create nation voice channels. Voice category not found.");
                 }
@@ -358,22 +342,18 @@ public class TDBManager {
     }
 
     public static void renameNation(String oldName, String newName) {
-        plugin.getLogger().warning("6");
-        rename(oldName, newName, "nation-", getNationTextCategoryId(), getNationVoiceCategoryId());
+        rename(oldName, newName, "nation-", ConfigGetters.getNationTextCategoryId(), ConfigGetters.getNationVoiceCategoryId());
     }
 
     public static void renameTown(String oldName, String newName) {
-        plugin.getLogger().warning("7");
-        rename(oldName, newName, "town-", getTownTextCategoryId(), getTownVoiceCategoryId());
+        rename(oldName, newName, "town-", ConfigGetters.getTownTextCategoryId(), ConfigGetters.getTownVoiceCategoryId());
     }
 
 
     public static void rename(String oldName, String newName, String roleprefix, String townTextCategoryId, String townVoiceCategoryId) {
-        plugin.getLogger().warning("8");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         getRole(roleprefix + roleprefix).getManager().setName(roleprefix + roleprefix).queue(success -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgRoleRenameSuccess() + " " + TDBMessages.getConfigMsgRoleRenameSuccess() + roleprefix + " to " + oldName + roleprefix + " [18]"), failure -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgRoleRenameFailure() + " " + TDBMessages.getConfigMsgRoleRenameFailure() + roleprefix + " to " + oldName + roleprefix + " [18]"));
-
 
         List<TextChannel> discordTextChannels = guild.getTextChannelsByName(oldName, true);
         for (TextChannel discordTextChannel : discordTextChannels) {
@@ -381,7 +361,6 @@ public class TDBManager {
                 discordTextChannel.getManager().setName(newName).queue(success -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgTextChannelRenameSuccess() + " " + TDBMessages.getConfigMsgTextChannelRenameSuccess() + " to " + oldName + " [19]"), failure -> TDBMessages.sendMessageToDiscordLogChannel(TDBMessages.getConfigMsgTextChannelRenameFailure() + " " + TDBMessages.getConfigMsgTextChannelRenameFailure() + " to " + oldName + " [19]"));
             }
         }
-
 
         List<VoiceChannel> discordVoiceChannels = guild.getVoiceChannelsByName(oldName, true);
         for (VoiceChannel discordVoiceChannel : discordVoiceChannels) {
@@ -391,22 +370,18 @@ public class TDBManager {
         }
     }
 
-
     public static void deleteRoleAndChannelsFromTown(String townName) {
-        plugin.getLogger().warning("10");
-        deleteRoleAndChannels("town-" + townName, getRole("town-" + townName), getTownTextCategoryId(), getTownVoiceCategoryId());
+        deleteRoleAndChannels("town-" + townName, getRole("town-" + townName), ConfigGetters.getTownTextCategoryId(), ConfigGetters.getTownVoiceCategoryId());
     }
 
 
     public static void deleteRoleAndChannelsFromNation(String nationName) {
-        plugin.getLogger().warning("12");
-        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), getNationTextCategoryId(),
-                getNationVoiceCategoryId());
+        deleteRoleAndChannels("nation-" + nationName, getRole("nation-" + nationName), ConfigGetters.getNationTextCategoryId(),
+                ConfigGetters.getNationVoiceCategoryId());
     }
 
 
     public static void deleteRoleAndChannels(String name, @Nullable Role role, String textChannelParentId, String voiceChannelParentId) {
-        plugin.getLogger().warning("13");
         Guild guild = DiscordSRV.getPlugin().getMainGuild();
 
         if (role != null) {
@@ -432,16 +407,14 @@ public class TDBManager {
 
 
     public static void removePlayerRole(@NotNull UUID uuid, @NotNull Town town) {
-        plugin.getLogger().warning("17");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         removePlayerRole(offlinePlayer, town);
 
-        plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + town.getName() + " and nations if relevant");
+        plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + town.getName() + " town");
     }
 
     public static void removePlayerNationRole(@NotNull UUID uuid, @NotNull Nation nation) {
-        plugin.getLogger().warning("17");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         removePlayerRole(offlinePlayer, nation);
@@ -449,69 +422,14 @@ public class TDBManager {
         plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + nation.getName() + " nation");
     }
 
-//    public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-//        plugin.getLogger().warning("18 - Starting role removal process");
-//
-//        String linkedId = getLinkedId(offlinePlayer);
-//
-//        if (linkedId == null) {
-//            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
-//            return;
-//        }
-//
-//        Member member = getMember(linkedId);
-//
-//        if (member == null) {
-//            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-//            return;
-//        }
-//
-//        // Remove town role
-//        Role townRole = getRole(town);
-//        if (townRole != null) {
-//            if (member.getRoles().contains(townRole)) {
-//                plugin.getLogger().warning("Removing town role: " + townRole.getName());
-//                DiscordUtil.removeRolesFromMember(member, townRole);
-//
-//                DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord " + townRole.getName() + " channels!");
-//                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord " + townRole.getName() + " channels!");
-//            } else {
-//                plugin.getLogger().warning("Member does not have town role: " + townRole.getName());
-//            }
-//        } else {
-//            plugin.getLogger().warning("Town role not found for: " + town.getName());
-//        }
-//
-//        // Remove nation role if applicable
-//        if (town.hasNation()) {
-//            Nation nation = town.getNationOrNull();
-//            Role nationRole = getRole(nation);
-//
-//            if (nationRole != null) {
-//                if (member.getRoles().contains(nationRole)) {
-//                    plugin.getLogger().warning("Removing nation role: " + nationRole.getName());
-//                    DiscordUtil.removeRolesFromMember(member, nationRole);
-//
-//                    DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord nation channels!");
-//                    TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord nation channels!");
-//                } else {
-//                    plugin.getLogger().warning("Member does not have nation role: " + nationRole.getName());
-//                }
-//            } else {
-//                plugin.getLogger().warning("Nation role not found for: " + (nation != null ? nation.getName() : "null nation"));
-//            }
-//        }
-//    }
-
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        // Run this code asynchronously
         FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
         f.runGlobalLater(scheduledTask -> {
             // Pre-check for existing voice or text channels
             plugin.getLogger().warning("18 - Starting role removal process");
 
             // Step 1: Retrieve the linked Discord ID
-            String linkedId = getLinkedId(offlinePlayer);
+            String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
             plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
             if (linkedId == null) {
@@ -520,7 +438,7 @@ public class TDBManager {
             }
 
             // Step 2: Retrieve the Discord member
-            Member member = getMember(linkedId);
+            Member member = SimpleGetters.getMember(linkedId);
             plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
 
             if (member == null) {
@@ -529,13 +447,13 @@ public class TDBManager {
             }
 
             // Step 3: Remove town role
-            Role townRole = getRole(town);
+            Role townRole = SimpleGetters.getRole(town);
             plugin.getLogger().warning("21 - Town role: " + (townRole != null ? townRole.getName() : "null"));
 
             if (townRole != null) {
                 if (member.getRoles().contains(townRole)) {
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                            retryRoleRemoval(member, townRole, "Town", offlinePlayer)
+                            RetryMethods.retryRoleRemoval(member, townRole, "Town", offlinePlayer)
                     );
                 } else {
                     plugin.getLogger().warning("23 - Member does not have town role: " + townRole.getName());
@@ -543,150 +461,75 @@ public class TDBManager {
             } else {
                 plugin.getLogger().warning("24 - Town role not found for town: " + town.getName());
             }
-        }, 100); //TODO: Fix delay and test
+        }, 100);
     }
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
-        // Run this code asynchronously
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
+        f.runGlobalLater(scheduledTask -> {
+            // Pre-check for existing voice or text channels
             plugin.getLogger().warning("18 - Starting role removal process");
 
             // Step 1: Retrieve the linked Discord ID
-            String linkedId = getLinkedId(offlinePlayer);
+            String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
             plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
             if (linkedId == null) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
-                );
+                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
                 return;
             }
 
             // Step 2: Retrieve the Discord member
-            Member member = getMember(linkedId);
+            Member member = SimpleGetters.getMember(linkedId);
             plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
 
             if (member == null) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
-                );
+                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
                 return;
             }
 
             // Step 4: Remove nation role
-                plugin.getLogger().warning("25 - Nation for town: " + (nation != null ? nation.getName() : "null"));
+            plugin.getLogger().warning("25 - Nation for town: " + nation.getName());
 
-                Role nationRole = getRole(nation);
-                plugin.getLogger().warning("26 - Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
+            Role nationRole = SimpleGetters.getRole(nation);
+            plugin.getLogger().warning("26 - Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
 
-                if (nationRole != null) {
-                    if (member.getRoles().contains(nationRole)) {
-                        Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                                retryRoleRemoval(member, nationRole, "Nation", offlinePlayer)
-                        );
-                    } else {
-                        plugin.getLogger().warning("28 - Member does not have nation role: " + nationRole.getName());
-                    }
+            if (nationRole != null) {
+                if (member.getRoles().contains(nationRole)) {
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                            RetryMethods.retryRoleRemoval(member, nationRole, "Nation", offlinePlayer)
+                    );
                 } else {
-                    plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
+                    plugin.getLogger().warning("28 - Member does not have nation role: " + nationRole.getName());
                 }
-        });
+            } else {
+                plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
+            }
+        }, 100);
     }
-
-
-    private static void retryRoleRemoval(Member member, Role role, String roleType, OfflinePlayer offlinePlayer) {
-        int maxAttempts = 3;
-        int attempt = 1;
-
-        while (attempt <= maxAttempts) {
-            plugin.getLogger().warning(roleType + " role removal attempt " + attempt + " for role: " + role.getName());
-            try {
-                DiscordUtil.removeRolesFromMember(member, role);
-                if (!member.getRoles().contains(role)) {
-                    plugin.getLogger().warning(roleType + " role successfully removed: " + role.getName());
-                    DiscordUtil.privateMessage(member.getUser(), "You have been removed from the Discord " + role.getName() + " channels!");
-                    TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You have been removed from the Discord " + role.getName() + " channels!");
-                    break;
-                } else {
-                    plugin.getLogger().warning(roleType + " role still present: " + role.getName());
-                }
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error removing " + roleType + " role: " + role.getName() + ". Attempt " + attempt + " failed with exception: " + e.getMessage());
-            }
-            attempt++;
-            try {
-                Thread.sleep(1000); // Wait 1 second before retrying
-            } catch (InterruptedException ignored) {
-            }
-        }
-    }
-
-
-
-    private static void retryRoleAssignment(Member member, Role role, String roleType, OfflinePlayer offlinePlayer) {
-        int maxAttempts = 3;
-        int attempt = 1;
-        Guild guild = member.getGuild();
-
-        while (attempt <= maxAttempts) {
-            plugin.getLogger().warning(roleType + " role assignment attempt " + attempt + " for role: " + role.getName());
-            try {
-                guild.addRoleToMember(member, role).queue(
-                        success -> {
-                            plugin.getLogger().warning("[DEBUG] Successfully assigned role: " + role.getName());
-                            plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
-                            DiscordUtil.privateMessage(
-                                    member.getUser(),
-                                    "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
-                            );
-                            TDBMessages.sendMessageToPlayerGame(
-                                    offlinePlayer,
-                                    "Your account has been linked to " + role.getName().substring(role.getName().indexOf('-') + 1) + "!"
-                            );
-                        },
-                        failure -> {
-                            System.err.println("[ERROR] Failed to assign role: " + role.getName() + " to member: " + member.getEffectiveName());
-                            failure.printStackTrace();
-                        }
-                );
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error removing " + roleType + " role: " + role.getName() + ". Attempt " + attempt + " failed with exception: " + e.getMessage());
-            }
-            attempt++;
-            try {
-                Thread.sleep(1000); // Wait 1 second before retrying
-            } catch (InterruptedException ignored) {
-            }
-        }
-
-    }
-
 
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
-        plugin.getLogger().warning("20");
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
         givePlayerRole(offlinePlayer, nation);
     }
 
 
     public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
-        plugin.getLogger().warning("21");
-
-        String linkedId = getLinkedId(offlinePlayer);
+        String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
 
         if (linkedId == null) {
             TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do '/discord link' to get started!");
             return;
         }
 
-        Member member = getMember(linkedId);
+        Member member = SimpleGetters.getMember(linkedId);
 
         if (member == null) {
             TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
             return;
         }
 
-        Role nationRole = getRole(nation);
+        Role nationRole = SimpleGetters.getRole(nation);
 
         if (nationRole != null) {
             if (!member.getRoles().contains(nationRole)) {
@@ -703,7 +546,6 @@ public class TDBManager {
 
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Town town) {
         try {
-            plugin.getLogger().warning("23");
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
             givePlayerRole(offlinePlayer, town);
         } catch (Exception e) {
@@ -712,12 +554,11 @@ public class TDBManager {
     }
 
     public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        // Run this code asynchronously
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             plugin.getLogger().warning("18 - Starting role add process");
 
             // Step 1: Retrieve the linked Discord ID
-            String linkedId = getLinkedId(offlinePlayer);
+            String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
             plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
             if (linkedId == null) {
@@ -728,7 +569,7 @@ public class TDBManager {
             }
 
             // Step 2: Retrieve the Discord member
-            Member member = getMember(linkedId);
+            Member member = SimpleGetters.getMember(linkedId);
             plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
 
             if (member == null) {
@@ -739,14 +580,14 @@ public class TDBManager {
             }
 
             // Step 3: Remove town role
-            Role townRole = getRole(town);
+            Role townRole = SimpleGetters.getRole(town);
             plugin.getLogger().warning("21 - Town role: " + (townRole != null ? townRole.getName() : "null"));
 
             if (townRole != null) {
                 if (!member.getRoles().contains(townRole)) {
                     plugin.getLogger().warning("[DEBUG] Member roles before: " + member.getRoles());
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                            retryRoleAssignment(member, townRole, "Town", offlinePlayer)
+                            RetryMethods.retryRoleAssignment(member, townRole, "Town", offlinePlayer)
                     );
                     giveRoleToMember(offlinePlayer, member, townRole);//TODO
                     plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
@@ -762,13 +603,13 @@ public class TDBManager {
                 Nation nation = town.getNationOrNull();
                 plugin.getLogger().warning("25 - Nation for town: " + (nation != null ? nation.getName() : "null"));
 
-                Role nationRole = getRole(nation);
+                Role nationRole = SimpleGetters.getRole(nation);
                 plugin.getLogger().warning("26 - Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
 
                 if (nationRole != null) {
                     if (!member.getRoles().contains(nationRole)) {
                         Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
-                                retryRoleAssignment(member, nationRole, "Nation", offlinePlayer)
+                                RetryMethods.retryRoleAssignment(member, nationRole, "Nation", offlinePlayer)
                         );
                         giveRoleToMember(offlinePlayer, member, townRole);//TODO
                     } else {
@@ -812,11 +653,11 @@ public class TDBManager {
         Guild guild = member.getGuild();
 
         // Check if the town role already exists
-        Role existingRole = getRole(town);
+        Role existingRole = SimpleGetters.getRole(town);
         if (existingRole != null) {
             plugin.getLogger().warning("Role already exists for town: " + town.getName() + " - Reusing existing role.");
             giveRoleToMember(offlinePlayer, member, existingRole);
-            return; // Exit early since the role already exists
+            return;
         }
 
         if (plugin.config.getBoolean("town.CreateRoleIfNoneExists")) {
@@ -850,18 +691,18 @@ public class TDBManager {
         Guild guild = member.getGuild();
 
         // Check if the nation role already exists
-        Role existingRole = getRole(nation);
+        Role existingRole = SimpleGetters.getRole(nation);
         if (existingRole != null) {
             plugin.getLogger().warning("Role already exists for nation: " + nation.getName() + " - Reusing existing role.");
             giveRoleToMember(offlinePlayer, member, existingRole);
-            return; // Exit early if the role exists
+            return;
         }
 
         // Synchronize to prevent multiple threads creating the same role
         synchronized (TDBManager.class) {
-            if (getRole(nation) != null) { // Double-check after acquiring the lock
+            if (SimpleGetters.getRole(nation) != null) { // Double-check after acquiring the lock
                 plugin.getLogger().warning("Role now exists after re-check: " + nation.getName());
-                giveRoleToMember(offlinePlayer, member, getRole(nation));
+                giveRoleToMember(offlinePlayer, member, SimpleGetters.getRole(nation));
                 return;
             }
 
@@ -894,28 +735,26 @@ public class TDBManager {
 
 
     private static void createChannels(Guild guild, Town town, Role role) {
-        plugin.getLogger().warning("28");
         createChannels(
                 guild,
                 town.getName(),
                 role,
                 plugin.config.getBoolean("town.CreateVoiceChannelForRole"),
                 plugin.config.getBoolean("town.CreateTextChannelForRole"),
-                getTownVoiceCategoryId(),
-                getTownTextCategoryId()
+                ConfigGetters.getTownVoiceCategoryId(),
+                ConfigGetters.getTownTextCategoryId()
         );
     }
 
     private static void createChannels(Guild guild, Nation nation, Role role) {
-        plugin.getLogger().warning("29");
         createChannels(
                 guild,
                 nation.getName(),
                 role,
                 plugin.config.getBoolean("nation.CreateVoiceChannelForRole"),
                 plugin.config.getBoolean("nation.CreateTextChannelForRole"),
-                getNationVoiceCategoryId(),
-                getNationTextCategoryId()
+                ConfigGetters.getNationVoiceCategoryId(),
+                ConfigGetters.getNationTextCategoryId()
         );
     }
 
@@ -928,7 +767,6 @@ public class TDBManager {
             @Nullable String voiceChannelCategoryId,
             @Nullable String textChannelCategoryId
     ) {
-        plugin.getLogger().warning("30");
 
         long VIEW_PERM = Permission.VIEW_CHANNEL.getRawValue();
         long VC_CONNECT_PERM = Permission.VOICE_CONNECT.getRawValue();
@@ -1003,69 +841,11 @@ public class TDBManager {
                     plugin.getLogger().warning("Text channel already exists for: " + name);
                 }
             }
-        }, 100); //TODO: Fix delay and test
-
-
+        }, 100);
     }
 
-
     @Nullable
-    public static String getLinkedId(@NotNull OfflinePlayer offlinePlayer) {
-        plugin.getLogger().warning("31");
-        return DiscordSRV.getPlugin().getAccountLinkManager().getDiscordId(offlinePlayer.getUniqueId());
-    }
-
-
-    @Nullable
-    private static Member getMember(@NotNull String id) {
-        plugin.getLogger().warning("32");
-        return DiscordSRV.getPlugin().getMainGuild().getMemberById(id);
-    }
-
-
-    @Nullable
-    private static Role getRole(@NotNull Town town) {
-        plugin.getLogger().warning("35");
-        return getRole("town-" + town.getName());
-    }
-
-
-    @Nullable
-    private static Role getRole(@NotNull Nation nation) {
-        plugin.getLogger().warning("36");
-        return getRole("nation-" + nation.getName());
-    }
-
-//    @Nullable
-//    private static Role getRole(@NotNull String name) {
-//        plugin.getLogger().warning("37: " + name);
-//        int retryCount = 5;
-//        long delayMillis = 500;
-//
-//        for (int i = 0; i < retryCount; i++) {
-//            try {
-//                // Attempt to fetch the role
-//                List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
-//                if (!roles.isEmpty()) {
-//                    plugin.getLogger().warning("Role found: " + name);
-//                    return roles.get(0); // Return the first matching role
-//                }
-//
-//                plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
-//                Thread.sleep(delayMillis); // Wait before retrying
-//
-//            } catch (Exception exception) {
-//                plugin.getLogger().warning("AHA GETROLE ERROR: " + exception.getMessage());
-//                break; // Exit the loop if an exception occurs
-//            }
-//        }
-//
-//        plugin.getLogger().warning("Role not found after retries: " + name);
-//        return null;
-//    }
-
-    @Nullable
-    private static Role getRole(@NotNull String name) {
+    public static Role getRole(@NotNull String name) {
         try {
             return java.util.concurrent.Executors.newSingleThreadExecutor().submit(() -> {
                 plugin.getLogger().warning("37: " + name);
@@ -1078,7 +858,7 @@ public class TDBManager {
                         List<Role> roles = DiscordUtil.getJda().getRolesByName(name, true);
                         if (!roles.isEmpty()) {
                             plugin.getLogger().warning("Role found: " + name);
-                            return roles.get(0); // Return the first matching role
+                            return roles.getFirst(); // Return the first matching role
                         }
 
                         plugin.getLogger().warning("Role not found, retrying... (" + (i + 1) + "/" + retryCount + ")");
@@ -1099,23 +879,4 @@ public class TDBManager {
         }
     }
 
-    @Nullable
-    private static String getTownVoiceCategoryId() {
-        return plugin.config.getString("town.VoiceCategoryId");
-    }
-
-    @Nullable
-    private static String getTownTextCategoryId() {
-        return plugin.config.getString("town.TextCategoryId");
-    }
-
-    @Nullable
-    private static String getNationVoiceCategoryId() {
-        return plugin.config.getString("nation.VoiceCategoryId");
-    }
-
-    @Nullable
-    private static String getNationTextCategoryId() {
-        return plugin.config.getString("nation.TextCategoryId");
-    }
 }
