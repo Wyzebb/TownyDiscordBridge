@@ -21,6 +21,6 @@ public class DiscordSRVListener {
         String discordId = event.getUser().getId();
         UUID uuid = offlinePlayer.getUniqueId();
 
-        TDBManager.discordUserRoleCheck(discordId, uuid);
+        TDBManager.syncUserRolesToDiscord(discordId, uuid);
     }
 }

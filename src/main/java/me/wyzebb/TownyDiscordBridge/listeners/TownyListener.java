@@ -21,9 +21,9 @@ public class TownyListener implements Listener {
     public void onNewDay(NewDayEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("NewDayEvent fired!");
 
-        TDBManager.discordRoleCheckAllTownsAllNations();
-        TDBManager.discordTextChannelCheckAllTownsAllNations();
-        TDBManager.discordVoiceChannelCheckAllTownsAllNations();
+        TDBManager.syncAllTownsAllNations();
+        TDBManager.syncTextChannelCheckAllTownsAllNations();
+        TDBManager.syncVoiceChannelCheckAllTownsAllNations();
     }
 
     @EventHandler

@@ -7,6 +7,7 @@ import github.scarsz.discordsrv.dependencies.jda.api.entities.Member;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.Role;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
 import github.scarsz.discordsrv.util.DiscordUtil;
+import me.wyzebb.TownyDiscordBridge.util.SimpleGetters;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -97,7 +98,7 @@ public class TDBMessages {
 
             assert discordLogChannel != null;
             TextChannel textChannel = guild.getTextChannelById(discordLogChannel);
-            String discordId = Preconditions.checkNotNull(TDBManager.getLinkedId(offlinePlayer));
+            String discordId = Preconditions.checkNotNull(SimpleGetters.getLinkedId(offlinePlayer));
 
             Member member = Preconditions.checkNotNull(DiscordUtil.getMemberById(discordId));
             List<Role> roles = Preconditions.checkNotNull(member).getRoles();
@@ -115,7 +116,7 @@ public class TDBMessages {
                     .getName(), "Minecraft UUID: " + String.valueOf(uuid), "Discord Name: " + member
 
                     .getUser().getAsMention(), "Discord ID: " +
-                    TDBManager.getLinkedId(offlinePlayer), "Discord Roles: " + String.valueOf(roles), "Message: " +
+                    SimpleGetters.getLinkedId(offlinePlayer), "Discord Roles: " + String.valueOf(roles), "Message: " +
 
                     getPluginPrefix() + " " + msg, "--------------------------------------------------"});
 
