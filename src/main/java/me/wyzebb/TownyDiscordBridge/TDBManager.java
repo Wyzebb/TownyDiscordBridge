@@ -440,6 +440,15 @@ public class TDBManager {
         plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + town.getName() + " and nations if relevant");
     }
 
+    public static void removePlayerNationRole(@NotNull UUID uuid, @NotNull Nation nation) {
+        plugin.getLogger().warning("17");
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+
+        removePlayerRole(offlinePlayer, nation);
+
+        plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + nation.getName() + " nation");
+    }
+
 //    public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
 //        plugin.getLogger().warning("18 - Starting role removal process");
 //
@@ -536,10 +545,37 @@ public class TDBManager {
             } else {
                 plugin.getLogger().warning("24 - Town role not found for town: " + town.getName());
             }
+        });
+    }
 
-            // Step 4: Remove nation role if applicable
-            if (town.hasNation()) {
-                Nation nation = town.getNationOrNull();
+    public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
+        // Run this code asynchronously
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("18 - Starting role removal process");
+
+            // Step 1: Retrieve the linked Discord ID
+            String linkedId = getLinkedId(offlinePlayer);
+            plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
+
+            if (linkedId == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
+                );
+                return;
+            }
+
+            // Step 2: Retrieve the Discord member
+            Member member = getMember(linkedId);
+            plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
+
+            if (member == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
+                );
+                return;
+            }
+
+            // Step 4: Remove nation role
                 plugin.getLogger().warning("25 - Nation for town: " + (nation != null ? nation.getName() : "null"));
 
                 Role nationRole = getRole(nation);
@@ -556,7 +592,6 @@ public class TDBManager {
                 } else {
                     plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
                 }
-            }
         });
     }
 
