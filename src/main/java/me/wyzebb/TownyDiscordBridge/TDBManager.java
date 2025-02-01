@@ -505,7 +505,9 @@ public class TDBManager {
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
         // Run this code asynchronously
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
+        f.runGlobalLater(scheduledTask -> {
+            // Pre-check for existing voice or text channels
             plugin.getLogger().warning("18 - Starting role removal process");
 
             // Step 1: Retrieve the linked Discord ID
@@ -513,9 +515,7 @@ public class TDBManager {
             plugin.getLogger().warning("19 - Linked ID for player: " + (linkedId != null ? linkedId : "null"));
 
             if (linkedId == null) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
-                );
+                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!");
                 return;
             }
 
@@ -524,9 +524,7 @@ public class TDBManager {
             plugin.getLogger().warning("20 - Member for linked ID: " + (member != null ? member.getEffectiveName() : "null"));
 
             if (member == null) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
-                );
+                TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
                 return;
             }
 
@@ -545,7 +543,7 @@ public class TDBManager {
             } else {
                 plugin.getLogger().warning("24 - Town role not found for town: " + town.getName());
             }
-        });
+        }, 100); //TODO: Fix delay and test
     }
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
