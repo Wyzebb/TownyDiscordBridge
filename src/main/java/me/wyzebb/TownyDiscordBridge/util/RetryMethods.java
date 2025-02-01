@@ -71,7 +71,7 @@ public class RetryMethods {
             try {
                 Thread.sleep(1000); // Wait 1 second before retrying
             } catch (InterruptedException ignored) {
-                plugin.getLogger().severe("Thread sleep error");
+                plugin.getLogger().severe("Thread sleep error!");
             }
         }
 
