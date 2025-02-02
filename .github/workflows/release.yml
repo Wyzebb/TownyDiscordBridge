@@ -42,7 +42,7 @@ jobs:
         with:
           draft: false
           prerelease: true
-          release_name: $TDB-{{ env.NEW_VERSION }}
+          release_name: TDB-${{ env.NEW_VERSION }}
           tag_name: "v${{ env.NEW_VERSION }}"
           body_path: CHANGELOG.md
         env:
