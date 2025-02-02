@@ -12,6 +12,8 @@ import com.palmergames.bukkit.towny.object.Resident;
 
 import com.palmergames.bukkit.towny.object.Town;
 import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
+import me.wyzebb.TownyDiscordBridge.util.IntermediaryMethods;
+import me.wyzebb.TownyDiscordBridge.util.SyncMethods;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -21,9 +23,9 @@ public class TownyListener implements Listener {
     public void onNewDay(NewDayEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("NewDayEvent fired!");
 
-        TDBManager.syncAllTownsAllNations();
-        TDBManager.syncTextChannelCheckAllTownsAllNations();
-        TDBManager.syncVoiceChannelCheckAllTownsAllNations();
+        SyncMethods.syncAllTownsAllNations();
+        SyncMethods.syncTextChannelCheckAllTownsAllNations();
+        SyncMethods.syncVoiceChannelCheckAllTownsAllNations();
     }
 
     @EventHandler
@@ -46,7 +48,7 @@ public class TownyListener implements Listener {
         Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDBManager.removePlayerRole(uuid, town);
+        IntermediaryMethods.removePlayerRole(uuid, town);
     }
 
     @EventHandler
@@ -59,7 +61,7 @@ public class TownyListener implements Listener {
         Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDBManager.removePlayerRole(uuid, town);
+        IntermediaryMethods.removePlayerRole(uuid, town);
     }
 
     @EventHandler
@@ -72,7 +74,7 @@ public class TownyListener implements Listener {
         Preconditions.checkNotNull(uuid);
         Preconditions.checkNotNull(town);
 
-        TDBManager.removePlayerRole(uuid, town);
+        IntermediaryMethods.removePlayerRole(uuid, town);
     }
 
     @EventHandler
@@ -81,7 +83,7 @@ public class TownyListener implements Listener {
 
         List<Resident> townResidents = event.getTown().getResidents();
         for (Resident townResident : townResidents) {
-            TDBManager.givePlayerRole(townResident.getUUID(), event.getNation());
+            IntermediaryMethods.givePlayerRole(townResident.getUUID(), event.getNation());
         }
     }
 
@@ -90,7 +92,7 @@ public class TownyListener implements Listener {
         TownyDiscordBridge.plugin.getLogger().warning("NationRemoveTownEvent fired!");
 
         for (Resident townResident : event.getTown().getResidents()) {
-            TDBManager.removePlayerNationRole(townResident.getUUID(), event.getTown().getNationOrNull());
+            IntermediaryMethods.removePlayerNationRole(townResident.getUUID(), event.getTown().getNationOrNull());
         }
     }
 
@@ -101,7 +103,7 @@ public class TownyListener implements Listener {
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getTown().getName();
 
-        TDBManager.renameTown(OLD_NAME, NEW_NAME);
+        IntermediaryMethods.renameTown(OLD_NAME, NEW_NAME);
     }
 
     @EventHandler
@@ -111,20 +113,20 @@ public class TownyListener implements Listener {
         final String OLD_NAME = event.getOldName();
         final String NEW_NAME = event.getNation().getName();
 
-        TDBManager.renameNation(OLD_NAME, NEW_NAME);
+        IntermediaryMethods.renameNation(OLD_NAME, NEW_NAME);
     }
 
     @EventHandler
     public void onDeleteTown(PreDeleteTownEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("DeleteTownEvent fired!");
 
-        TDBManager.deleteRoleAndChannelsFromTown(event.getTownName());
+        IntermediaryMethods.deleteRoleAndChannelsFromTown(event.getTownName());
     }
 
     @EventHandler
     public void onDeleteNation(DeleteNationEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("DeleteNationEvent fired!");
 
-        TDBManager.deleteRoleAndChannelsFromNation(event.getNationName());
+        IntermediaryMethods.deleteRoleAndChannelsFromNation(event.getNationName());
     }
 }

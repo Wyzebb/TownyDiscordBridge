@@ -5,6 +5,8 @@ import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
 
 import java.util.UUID;
 
+import me.wyzebb.TownyDiscordBridge.util.IntermediaryMethods;
+import me.wyzebb.TownyDiscordBridge.util.SyncMethods;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -39,7 +41,7 @@ public class TDBCommand implements CommandExecutor {
 
                     if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.Role.AllLinked")) {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandWait());
-                        TDBManager.syncAllUsersRolesToDiscord();
+                        IntermediaryMethods.syncAllUsersRolesToDiscord();
 
                     } else {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandNoPerms());
@@ -51,7 +53,7 @@ public class TDBCommand implements CommandExecutor {
 
                     if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.Role.CreateAllTownsAndNations")) {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandWait());
-                        TDBManager.syncAllTownsAllNations();
+                        SyncMethods.syncAllTownsAllNations();
                     } else {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandNoPerms());
                     }
@@ -66,7 +68,7 @@ public class TDBCommand implements CommandExecutor {
                     Preconditions.checkNotNull(uuid, "discordId null in onCommand()!");
 
                     TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandWait());
-                    TDBManager.syncUserRolesToDiscord(discordId, uuid);
+                    SyncMethods.syncUserRolesToDiscord(discordId, uuid);
                 } else {
                     TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandNoPerms());
                 }
@@ -79,7 +81,7 @@ public class TDBCommand implements CommandExecutor {
 
                     if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.TextChannel.AllTownsAndNations")) {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandWait());
-                        TDBManager.syncTextChannelCheckAllTownsAllNations();
+                        SyncMethods.syncTextChannelCheckAllTownsAllNations();
                     } else {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandNoPerms());
                     }
@@ -94,7 +96,7 @@ public class TDBCommand implements CommandExecutor {
 
                     if (sender.hasPermission("TownyDiscordBridge.Admin") || sender.hasPermission("TownyDiscordBridge.Check.VoiceChannel.AllTownsAndNations")) {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandWait());
-                        TDBManager.syncVoiceChannelCheckAllTownsAllNations();
+                        SyncMethods.syncVoiceChannelCheckAllTownsAllNations();
                     } else {
                         TDBMessages.sendMessageToPlayerGame(player, TDBMessages.getConfigMsgCommandNoPerms());
                     }

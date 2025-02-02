@@ -1,11 +1,11 @@
 package me.wyzebb.TownyDiscordBridge.listeners;
 
-import me.wyzebb.TownyDiscordBridge.TDBManager;
 import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.AccountLinkedEvent;
 
 import java.util.UUID;
 
+import me.wyzebb.TownyDiscordBridge.util.SyncMethods;
 import org.bukkit.OfflinePlayer;
 
 
@@ -21,6 +21,6 @@ public class DiscordSRVListener {
         String discordId = event.getUser().getId();
         UUID uuid = offlinePlayer.getUniqueId();
 
-        TDBManager.syncUserRolesToDiscord(discordId, uuid);
+        SyncMethods.syncUserRolesToDiscord(discordId, uuid);
     }
 }
