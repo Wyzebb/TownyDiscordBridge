@@ -32,15 +32,12 @@ jobs:
       - name: Fetch latest DEV release number
         id: dev_version
         run: |
-          LATEST_DEV=$(gh release list --limit 500 | grep "TDB-${VERSION}+DEV" | awk '{print $1}' | sort -V | tail -n1 | grep -o 'DEV[0-9]*' | grep -o '[0-9]*' || echo "0")
+          LATEST_DEV=$(gh release list --limit 500 | grep "TownyDiscordBridge-${VERSION}+DEV" | awk '{print $1}' | sort -V | tail -n1 | grep -o 'DEV[0-9]*' | grep -o '[0-9]*' || echo "0")
           NEW_DEV=$((LATEST_DEV + 1))
           echo "NEW_VERSION=${VERSION}+DEV${NEW_DEV}" >> $GITHUB_ENV
-          echo "TAG_VERSION=${VERSION}_DEV${NEW_DEV}" >> $GITHUB_ENV  # GitHub-safe tag
+          echo "TAG_VERSION=${VERSION}-DEV${NEW_DEV}" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Rename JAR for Upload
-        run: mv target/*.jar target/TDB-${{ env.NEW_VERSION }}.jar
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -48,8 +45,8 @@ jobs:
         with:
           draft: false
           prerelease: true
-          release_name: "TDB-${{ env.NEW_VERSION }}"
-          tag_name: "v${{ env.TAG_VERSION }}"  # Use GitHub-safe tag name
+          release_name: "TownyDiscordBridge-${{ env.NEW_VERSION }}"
+          tag_name: "v${{ env.TAG_VERSION }}"  # GitHub-safe tag name
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,6 +57,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "target/TDB-${{ env.NEW_VERSION }}.jar"
-          asset_name: "TDB-${{ env.NEW_VERSION }}.jar"
+          asset_path: "target/TownyDiscordBridge-${{ env.VERSION }}.jar"
+          asset_name: "TownyDiscordBridge-${{ env.NEW_VERSION }}.jar"
           asset_content_type: application/java-archive
