@@ -35,7 +35,7 @@ jobs:
           LATEST_DEV=$(gh release list --limit 500 | grep "TownyDiscordBridge-${VERSION}+DEV" | awk '{print $1}' | sort -V | tail -n1 | grep -o 'DEV[0-9]*' | grep -o '[0-9]*' || echo "0")
           NEW_DEV=$((LATEST_DEV + 1))
           echo "NEW_VERSION=${VERSION}+DEV${NEW_DEV}" >> $GITHUB_ENV
-          echo "TAG_VERSION=${VERSION}_DEV${NEW_DEV}" >> $GITHUB_ENV  # GitHub-safe tag
+          echo "TAG_VERSION=${VERSION}-DEV${NEW_DEV}" >> $GITHUB_ENV  # GitHub-safe tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
