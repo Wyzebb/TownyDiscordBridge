@@ -25,16 +25,22 @@ jobs:
 
       - name: Get Version from POM
         id: version
-        run: echo "VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)" >> $GITHUB_ENV
+        run: |
+          VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Fetch latest DEV release number
         id: dev_version
         run: |
           LATEST_DEV=$(gh release list --limit 500 | grep "TDB-${VERSION}+DEV" | awk '{print $1}' | sort -V | tail -n1 | grep -o 'DEV[0-9]*' | grep -o '[0-9]*' || echo "0")
           NEW_DEV=$((LATEST_DEV + 1))
-          echo "NEW_VERSION=${VERSION}+${NEW_DEV}" >> $GITHUB_ENV
+          echo "NEW_VERSION=${VERSION}+DEV${NEW_DEV}" >> $GITHUB_ENV
+          echo "TAG_VERSION=${VERSION}_DEV${NEW_DEV}" >> $GITHUB_ENV  # GitHub-safe tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename JAR for Upload
+        run: mv target/*.jar target/TDB-${{ env.NEW_VERSION }}.jar
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -42,8 +48,8 @@ jobs:
         with:
           draft: false
           prerelease: true
-          release_name: TDB-${{ env.NEW_VERSION }}
-          tag_name: "v${{ env.NEW_VERSION }}"
+          release_name: "TDB-${{ env.NEW_VERSION }}"
+          tag_name: "v${{ env.TAG_VERSION }}"  # Use GitHub-safe tag name
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
