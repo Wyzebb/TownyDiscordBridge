@@ -432,6 +432,7 @@ public class TDBManager {
                     if (textChannelCategoryId != null) {
                         textChannelAction.setParent(guild.getCategoryById(textChannelCategoryId));
                     }
+
                     textChannelAction.queue(
                             success -> TDBMessages.sendMessageToDiscordLogChannel(
                                     TDBMessages.getConfigMsgTextChannelCreateSuccess() + " " + name + " [27]"
@@ -440,14 +441,6 @@ public class TDBManager {
                                     TDBMessages.getConfigMsgTextChannelCreateFailure() + " " + name + " [27]"
                             )
                     );
-
-                    Member member = guild.getMemberById(everyoneRoleId);
-                    Member roleMember = guild.getMemberById(roleId);
-                    Member botMember = guild.getMemberById(botId);
-
-                    existingTextChannels.getFirst().upsertPermissionOverride(Objects.requireNonNull(member)).deny(Permission.MESSAGE_HISTORY).queue();
-                    existingTextChannels.getFirst().upsertPermissionOverride(Objects.requireNonNull(roleMember)).grant(Permission.MESSAGE_HISTORY).queue();
-                    existingTextChannels.getFirst().upsertPermissionOverride(Objects.requireNonNull(botMember)).grant(Permission.MESSAGE_HISTORY).queue();
                 } else {
                     plugin.getLogger().warning("Text channel already exists for: " + name);
                 }
