@@ -96,7 +96,7 @@ public class TownyListener implements Listener {
         TownyDiscordBridge.plugin.getLogger().warning("NationRemoveTownEvent fired!");
 
         for (Resident townResident : event.getTown().getResidents()) {
-            IntermediaryMethods.removePlayerNationRole(townResident.getUUID(), Objects.requireNonNull(event.getTown().getNationOrNull()));
+            IntermediaryMethods.removePlayerNationRole(townResident.getUUID(), event.getNation());
         }
     }
 
