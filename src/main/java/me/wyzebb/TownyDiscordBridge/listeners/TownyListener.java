@@ -46,10 +46,11 @@ public class TownyListener implements Listener {
         UUID uuid = event.getKickedResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(uuid);
-        Preconditions.checkNotNull(town);
-
         IntermediaryMethods.removePlayerRole(uuid, town);
+
+        if (town.hasNation()) {
+            IntermediaryMethods.removePlayerNationRole(uuid, Objects.requireNonNull(town.getNationOrNull()));
+        }
     }
 
     @EventHandler
@@ -59,10 +60,11 @@ public class TownyListener implements Listener {
         UUID uuid = event.getResident().getUUID();
         Town town = event.getTown();
 
-        Preconditions.checkNotNull(uuid);
-        Preconditions.checkNotNull(town);
-
         IntermediaryMethods.removePlayerRole(uuid, town);
+
+        if (town.hasNation()) {
+            IntermediaryMethods.removePlayerNationRole(uuid, Objects.requireNonNull(town.getNationOrNull()));
+        }
     }
 
     @EventHandler
