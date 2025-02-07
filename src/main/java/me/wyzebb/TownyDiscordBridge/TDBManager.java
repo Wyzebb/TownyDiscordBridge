@@ -68,10 +68,8 @@ public class TDBManager {
     }
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Town town) {
-        FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
-        f.runGlobalLater(scheduledTask -> {
-            // Pre-check for existing voice or text channels
-            plugin.getLogger().warning("18 - Starting role removal process");
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("[REMOVE1] Starting role removal process");
 
             // Step 1: Retrieve the linked Discord ID
             String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
@@ -106,14 +104,12 @@ public class TDBManager {
             } else {
                 plugin.getLogger().warning("24 - Town role not found for town: " + town.getName());
             }
-        }, 100);
+        });
     }
 
     public static void removePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
-        FoliaTaskScheduler f = new FoliaTaskScheduler(plugin);
-        f.runGlobalLater(scheduledTask -> {
-            // Pre-check for existing voice or text channels
-            plugin.getLogger().warning("18 - Starting role removal process");
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("[REMOVE2] Starting role removal process");
 
             // Step 1: Retrieve the linked Discord ID
             String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
@@ -150,43 +146,22 @@ public class TDBManager {
             } else {
                 plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
             }
-        }, 100);
-    }
-
-    public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
-        String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
-
-        if (linkedId == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do '/discord link' to get started!");
-            return;
-        }
-
-        Member member = SimpleGetters.getMember(linkedId);
-
-        if (member == null) {
-            TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!");
-            return;
-        }
-
-        Role nationRole = SimpleGetters.getRole(nation);
-
-        if (nationRole != null) {
-            if (!member.getRoles().contains(nationRole)) {
-                plugin.getLogger().warning("[DEBUG] Member roles before: " + member.getRoles());
-                giveRoleToMember(offlinePlayer, member, nationRole);
-                plugin.getLogger().warning("[DEBUG] Member roles after: " + member.getRoles());
-            } else {
-                plugin.getLogger().warning("Role already assigned: " + nationRole.getName());
-            }
-        } else {
-            createRole(offlinePlayer, member, nation);
-        }
+        });
     }
 
     public static void givePlayerRole(@NotNull UUID uuid, @NotNull Town town) {
         try {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
             givePlayerRole(offlinePlayer, town);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
+        try {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+            givePlayerRole(offlinePlayer, nation);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -254,6 +229,48 @@ public class TDBManager {
                 } else {
                     plugin.getLogger().warning("29 - Nation role not found for nation: " + nation.getName());
                 }
+            }
+        });
+    }
+
+    public static void givePlayerRole(@NotNull OfflinePlayer offlinePlayer, @NotNull Nation nation) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getLogger().warning("Starting nation role add process");
+
+            String linkedId = SimpleGetters.getLinkedId(offlinePlayer);
+
+            if (linkedId == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You haven't linked your Discord, do /discord link to get started!")
+                );
+                return;
+            }
+
+            // Retrieve the Discord member
+            Member member = SimpleGetters.getMember(linkedId);
+
+            if (member == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        TDBMessages.sendMessageToPlayerGame(offlinePlayer, "You are not in the Discord server!")
+                );
+                return;
+            }
+
+            // Remove nation role
+            Role nationRole = SimpleGetters.getRole(nation);
+            plugin.getLogger().warning("Nation role: " + (nationRole != null ? nationRole.getName() : "null"));
+
+            if (nationRole != null) {
+                if (!member.getRoles().contains(nationRole)) {;
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, () ->
+                            RetryMethods.retryRoleAssignment(member, nationRole, "Nation", offlinePlayer)
+                    );
+                    giveRoleToMember(offlinePlayer, member, nationRole);//TODO
+                } else {
+                    plugin.getLogger().warning("Role already assigned: " + nationRole.getName());
+                }
+            } else {
+                createRole(offlinePlayer, member, nation);
             }
         });
     }
