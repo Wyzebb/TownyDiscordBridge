@@ -54,11 +54,6 @@ public class IntermediaryMethods {
         plugin.getLogger().warning("HOPEFULLY REMOVED " + Bukkit.getOfflinePlayer(uuid).getName() + " from " + nation.getName() + " nation");
     }
 
-    public static void givePlayerRole(@NotNull UUID uuid, @NotNull Nation nation) {
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-        TDBManager.givePlayerRole(offlinePlayer, nation);
-    }
-
     public static void createChannels(Guild guild, Town town, Role role) {
         TDBManager.createChannels(
                 guild,
