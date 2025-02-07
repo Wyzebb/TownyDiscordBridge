@@ -12,7 +12,6 @@ import com.palmergames.bukkit.towny.event.town.TownLeaveEvent;
 import com.palmergames.bukkit.towny.object.Resident;
 
 import com.palmergames.bukkit.towny.object.Town;
-import github.scarsz.discordsrv.dependencies.google.common.base.Preconditions;
 import me.wyzebb.TownyDiscordBridge.util.IntermediaryMethods;
 import me.wyzebb.TownyDiscordBridge.util.SyncMethods;
 import org.bukkit.event.EventHandler;
@@ -86,8 +85,9 @@ public class TownyListener implements Listener {
         TownyDiscordBridge.plugin.getLogger().warning("NationAddTownEvent fired!");
 
         List<Resident> townResidents = event.getTown().getResidents();
+
         for (Resident townResident : townResidents) {
-            IntermediaryMethods.givePlayerRole(townResident.getUUID(), event.getNation());
+            TDBManager.givePlayerRole(townResident.getUUID(), event.getNation());
         }
     }
 
@@ -121,7 +121,7 @@ public class TownyListener implements Listener {
     }
 
     @EventHandler
-    public void onDeleteTown(PreDeleteTownEvent event) {
+    public void onDeleteTown(DeleteTownEvent event) {
         TownyDiscordBridge.plugin.getLogger().warning("DeleteTownEvent fired!");
 
         IntermediaryMethods.deleteRoleAndChannelsFromTown(event.getTownName());
